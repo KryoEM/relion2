@@ -148,7 +148,7 @@ def main_mpi(do_aligned_movies,dodose,dosummovie):
     
     # obtain my batch
     tbzgroup = comm.recv(source=0, tag=11)
-    tbzgroup = [tbzgroup[0],tbzgroup[1]]
+    #tbzgroup = [tbzgroup[0],tbzgroup[1]]
     # wait for all messages to finish transmition
     [sreq.wait() for sreq in sreqs]
     # process all micros in the batch        
@@ -210,6 +210,14 @@ def get_parser():
     return parser      
     
 #%%##############################################
+
+
+###### Main starts here #######################################    
+if __name__ == "__main__":   
+    kwargs = vars(get_parser().parse_known_args()[0])
+    # call main function
+    main_mpi(**kwargs)      
+
 
 #%%
 starfile  = '/jasper/temp/betagal1/Import/job001/movies.star'
