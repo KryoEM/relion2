@@ -3,7 +3,7 @@
 """
 Created on Tue Dec 27 17:26:46 2016
 
-@author: worker
+@author: Oleg Kuybeda
 """
 
 import myutils.filenames as fn

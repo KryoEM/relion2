@@ -183,11 +183,11 @@ def main_mpi(dstdir,starfile,unblurexe,sumexe,nth,do_aligned_movies,dodose,dosum
 def get_parser():
     import argparse    
     parser = argparse.ArgumentParser(fromfile_prefix_chars='@',
-                                     description='Running unblur via MPI.',
+                                     description='Running unblur on tbz-compressed micrographs via MPI.',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-                                     epilog="Example: mpirun -n 8 `which unblurtbz.py` -i Import/job001/movies.star -o MotionCorr/job001/" 
+                                     epilog="Example: mpirun -n 8 `which unblur_tbz.py` -i Import/job001/movies.star -o MotionCorr/job001/" 
                                      " -j 4 -s=True -f 3 -l 20 -un /jasper/relion/Unblur/unblur_1.0.2/bin/unblur_openmp_7_17_15.exe"
-                                     " -sm /jasper/relion/Unblur/unblur_1.0.2/bin/sum_movie_openmp_7_17_15.exe"
+                                     " -sm /jasper/relion/Summovie/summovie_1.0.2/bin/sum_movie_openmp_7_17_15.exe"
                                      "Note: if first_frame_sum and last_frame_sum specified, then dose weighting will be disabled."
                                      "Update this python script to include dose weighting via summovie utility if needed.")
     parser.add_argument('-i','--input_star_file', help='Star file with tbz-compressed filenames.', 
@@ -266,6 +266,5 @@ main_mpi(dstdir,starfile,unblurexe,sumexe,nth,do_aligned_movies,dodose,dosummovi
          dose_per_frame,vol,pre_exp,first_frame,last_frame)      
        
     
-#mpirun -n 8 `which unblurtbz.py` -i Import/job001/movies.star -o MotionCorr/job001/ -j 4 -s=True -f 3 -l 20 -un /jasper/relion/Unblur/unblur_1.0.2/bin/unblur_openmp_7_17_15.exe -sm /jasper/relion/Unblur/unblur_1.0.2/bin/sum_movie_openmp_7_17_15.exe
-
+#mpirun -n 8  -hostfile ./motionhost `which unblurtbz.py` -i Import/job001/movies.star -o MotionCorr/job001/ -j 4 -s=True -f 3 -l 20 -un /jasper/relion/Unblur/unblur_1.0.2/bin/unblur_openmp_7_17_15.exe -sm /jasper/relion/Summovie/summovie_1.0.2/bin/sum_movie_openmp_7_17_15.exe
 
