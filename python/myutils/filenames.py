@@ -125,8 +125,14 @@ def dif_dirs(src_dirs,src_ext,dst_dir,dst_ext):
         dstfiles = dstfiles + glob.glob(os.path.join(dst_dir,'*'+dst_ext))    
     srcfiles = filenames(srcfiles,src_ext) # [os.path.basename(f).replace(src_ext, '') for f in srcfiles]
     dstfiles = filenames(dstfiles,dst_ext) # [os.path.basename(f).replace(dst_ext, '') for f in dstfiles]    
-    return list(set(srcfiles) - set(dstfiles))    
-    
+    return list(set(srcfiles) - set(dstfiles))  
+
+def list_minus_dir(nlist,dst_dir,dst_ext):
+    ''' Return difference between names in nlist and dst_dir '''
+    dstfiles = glob.glob(os.path.join(dst_dir,'*'+dst_ext))    
+    dstfiles = filenames(dstfiles,dst_ext)  
+    return list(set(nlist) - set(dstfiles))  
+        
 def last_dir(path):
     return os.path.basename(os.path.normpath(path))
                 
