@@ -35,7 +35,7 @@ def scatter_list(init_fun,run_fun,finish_fun):
         nels     = len(elements)        
         elgroups = part_idxs(elements,nbatches=size)
         glens    = [len(g) for g in elgroups]
-        tprint('MPI - %d ranks, [min %d,max %d] elements per rank' % (size,min(glens),max(glens)))
+        tprint('MPI - %d ranks, tot elements %d, [min %d,max %d] elements per rank' % (size,nels,min(glens),max(glens)))
         # send all batches to all workers
         sreqs    = [comm.isend(elgroups[i], dest=i, tag=11) for i in range(size)]    
     # obtain my batch

@@ -17,6 +17,7 @@ import shutil
 from   myutils import star 
 from   myutils import mpi
 from   functools import partial
+import argparse    
 
 MOVSUFF         = '_movie.mrc'
 AVGSUFF         = '_avg.mrc'
@@ -44,7 +45,7 @@ def extract_tbz(ftbz,nth):
     tbz2mrc(dsttbz,MOVSUFF,nthreads=nth)       
 
 def write_unblur_script(dstmdir,mrcin,nth,unblurexe,nframes,angpix,do_movies,
-                        dose_per_frame,vol,pre_exp):
+                       dodose,dose_per_frame,vol,pre_exp):
     mname   = fn.file_only(mrcin)    
     cshfile = join(dstmdir,mname+'_unblur.com')
     logfile = join(dstmdir,mname+'_unblur.log')
@@ -74,7 +75,7 @@ def write_unblur_script(dstmdir,mrcin,nth,unblurexe,nframes,angpix,do_movies,
     return cshfile
     
 def write_summovie_script(dstmdir,mrcin,nth,sumexe,nframes,angpix,
-                        first_frame,last_frame):
+                         first_frame,last_frame):
     mname   = fn.file_only(mrcin)    
     cshfile = join(dstmdir,mname+'_summovie.com')
     logfile = join(dstmdir,mname+'_summovie.log')
@@ -107,7 +108,7 @@ def unblurmicro(unblurexe,sumexe,nth,ftbz,dstmdir,do_aligned_movies,
     tprint("Running Unblur on %s" % mrcname)                
     unblur_csh = write_unblur_script(dstmdir,mrcname,nth,
                                      unblurexe,nframes,angpix,do_aligned_movies,
-                                     dose_per_frame,vol,pre_exp)    
+                                     dodose,dose_per_frame,vol,pre_exp)    
     # call unblur script
     out,err,status = sysrun('csh %s' % unblur_csh)  
     assert(status)      
@@ -181,12 +182,11 @@ def main_mpi(dstdir,starfile,unblurexe,sumexe,nth,do_aligned_movies,dodose,dosum
     scratch.clean()                        
     
 def get_parser():
-    import argparse    
     parser = argparse.ArgumentParser(fromfile_prefix_chars='@',
                                      description='Running unblur on tbz-compressed micrographs via MPI.',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                      epilog="Example: mpirun -n 8 `which unblur_tbz.py` -i Import/job001/movies.star -o MotionCorr/job001/" 
-                                     " -j 4 -s=True -f 3 -l 20 -un /jasper/relion/Unblur/unblur_1.0.2/bin/unblur_openmp_7_17_15.exe"
+                                     " -j 4 -a=True -f 3 -l 20 -un /jasper/relion/Unblur/unblur_1.0.2/bin/unblur_openmp_7_17_15.exe"
                                      " -sm /jasper/relion/Summovie/summovie_1.0.2/bin/sum_movie_openmp_7_17_15.exe"
                                      "Note: if first_frame_sum and last_frame_sum specified, then dose weighting will be disabled."
                                      "Update this python script to include dose weighting via summovie utility if needed.")
@@ -195,8 +195,8 @@ def get_parser():
     parser.add_argument('-o','--output_dir', help='Output directory', 
                         default=argparse.SUPPRESS, type=str, required=True)  
     parser.add_argument('-j','--nthreads', help='Number of threads',default = 4, type=int, required=False)                    
-    parser.add_argument('-s','--save_movies', help='Flag to save aligned movies', 
-                        default=True, type=bool, required=False)   
+    #parser.add_argument('-s','--save_movies', help='Flag to save aligned movies', 
+    #                    default=True, type=bool, required=False)   
     parser.add_argument('-d','--do_dose', help='Flag to do  dose weighting', 
                         default=False, type=bool, required=False)   
     parser.add_argument('-a','--save_aligned_movies', help='Flag whether to save aligned movies', 
@@ -223,7 +223,11 @@ def get_parser():
 ###### Main starts here #######################################    
 if __name__ == "__main__":  
     # Parse input and obtain all params
-    kwargs              = vars(get_parser().parse_known_args()[0])
+    args,unknown        = get_parser().parse_known_args()
+    kwargs              = vars(args)
+    if len(unknown) > 0:
+        print "Unkown arguments %s !!! \n Quitting ..." % unknown
+        quit()
     dstdir              = kwargs['output_dir']    
     starfile            = kwargs['input_star_file']
     unblurexe           = kwargs['unblur_exe']
@@ -237,6 +241,7 @@ if __name__ == "__main__":
     first_frame         = kwargs['first_frame_sum']
     last_frame          = kwargs['last_frame_sum']    
     dosummovie          = last_frame != 0 or first_frame !=0    
+    #tprint("Align status %d" % do_aligned_movies)    
 else:
     #%% ----------------- TESTS -----------------------
     starfile  = '/jasper/temp/betagal1/Import/job001/movies.star'
