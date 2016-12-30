@@ -68,5 +68,15 @@ def scatter_list(init_fun,run_fun,finish_fun):
         finish_fun(elgroup)   
     freq.wait() 
     
+def verify(out,err,status):
+    if not status:
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        print "######## ERROR on RANK %d ###########\n" % rank
+        print err
+        MPI.COMM_WORLD.Abort(1)
+        #assert(0)         
+    
+    
 
 

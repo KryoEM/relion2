@@ -110,16 +110,14 @@ def unblurmicro(unblurexe,sumexe,nth,ftbz,dstmdir,do_aligned_movies,
                                      unblurexe,nframes,angpix,do_aligned_movies,
                                      dodose,dose_per_frame,vol,pre_exp)    
     # call unblur script
-    out,err,status = sysrun('csh %s' % unblur_csh)  
-    assert(status)      
+    mpi.verify(*sysrun('csh %s' % unblur_csh))  
     if dosummovie:
         # generate summovoe script
         tprint("Running Summovie on %s" % mrcname)                        
         sum_csh = write_summovie_script(dstmdir,mrcname,nth,sumexe,nframes,angpix,
                                         first_frame,last_frame)
         # call summovie script
-        out,err,status = sysrun('csh %s' % sum_csh)  
-        assert(status)         
+        mpi.verify(*sysrun('csh %s' % sum_csh))  
     
 def mpi_init(dstmdir,starfile):    
     '''Run by master rank 0 to initialize the processing'''
@@ -151,8 +149,7 @@ def mpi_run(dstdir,unblurexe,sumexe,nth,do_aligned_movies,dodose,dosummovie,
     # remove uncompressed micro  
     mrcname = tbz2mrc_name(tbz)
     tprint('Removing original/uncorrected movie %s' % mrcname)
-    out,err,status = sysrun('rm %s' % mrcname)          
-    assert(status)                         
+    mpi.verify(*sysrun('rm %s' % mrcname))        
           
 def mpi_finish(dstdir,do_aligned_movies,tbzgroup):
     ''' Run by master rank 0 to finilize mpi processing '''
@@ -160,13 +157,11 @@ def mpi_finish(dstdir,do_aligned_movies,tbzgroup):
     dstmdir = join(dstdir,MOVIE_DIR)        
     cmd = 'relion_star_loopheader rlnMicrographMovieName > %saverage_micrographs.star \n \
           ls %s/*%s >> %saverage_micrographs.star' % (dstdir,dstmdir,AVGSUFF,dstdir)
-    out,err,status = sysrun(cmd)  
-    assert(status)  
+    mpi.verify(*sysrun(cmd)) 
     if do_aligned_movies:
         cmd = 'relion_star_loopheader rlnMicrographMovieName > %saligned_movies.star \n \
                 ls %s/*%s >> %saligned_movies.star' % (dstdir,dstmdir,ALNSUFF,dstdir)
-        out,err,status = sysrun(cmd)  
-        assert(status)     
+        mpi.verify(*sysrun(cmd)) 
 
 def main_mpi(dstdir,starfile,unblurexe,sumexe,nth,do_aligned_movies,dodose,dosummovie,
              dose_per_frame,vol,pre_exp,first_frame,last_frame):
