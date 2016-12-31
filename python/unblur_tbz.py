@@ -151,16 +151,17 @@ def mpi_run(dstdir,unblurexe,sumexe,nth,do_aligned_movies,dodose,dosummovie,
     tprint('Removing original/uncorrected movie %s' % mrcname)
     mpi.verify(*sysrun('rm %s' % mrcname))        
           
-def mpi_finish(dstdir,do_aligned_movies,tbzgroup):
+def mpi_finish(dstdir,do_aligned_movies,tbzs):
     ''' Run by master rank 0 to finilize mpi processing '''
     # construct star files with resulting micrograph lists    
-    dstmdir = join(dstdir,MOVIE_DIR)        
-    cmd = 'relion_star_loopheader rlnMicrographMovieName > %saverage_micrographs.star \n \
-          ls %s/*%s >> %saverage_micrographs.star' % (dstdir,dstmdir,AVGSUFF,dstdir)
+    dstmdir = join(dstdir,MOVIE_DIR)       
+    tprint("Saving star files pointing to %d processed results in %s" % (len(tbzs),dstdir))     
+    cmd = "relion_star_loopheader 'rlnMicrographName #1' > %saverage_micrographs.star \n \
+          ls %s/*%s >> %saverage_micrographs.star" % (dstdir,dstmdir,AVGSUFF,dstdir)
     mpi.verify(*sysrun(cmd)) 
     if do_aligned_movies:
-        cmd = 'relion_star_loopheader rlnMicrographMovieName > %saligned_movies.star \n \
-                ls %s/*%s >> %saligned_movies.star' % (dstdir,dstmdir,ALNSUFF,dstdir)
+        cmd = "relion_star_loopheader 'rlnMicrographName #1 \n rlnMicrographMovieName #2' > %saligned_movies.star \n \
+                ls %s/*%s >> %saligned_movies.star" % (dstdir,dstmdir,ALNSUFF,dstdir)
         mpi.verify(*sysrun(cmd)) 
 
 def main_mpi(dstdir,starfile,unblurexe,sumexe,nth,do_aligned_movies,dodose,dosummovie,

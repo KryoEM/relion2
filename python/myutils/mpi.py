@@ -37,7 +37,7 @@ def __master_iter(comm,status,tasks,task_index,closed_index):
     if tag == TAGS.READY:    
         # Worker is ready, so send it a task
         if task_index < ntasks:
-            tprint("==========>>> Sending task %d out of %d to worker %d <<<==========" % (task_index+1,ntasks,source))
+            tprint("==========>>> Sending task %d/%d to worker %d <<<==========" % (task_index+1,ntasks,source))
             comm.send(tasks[task_index], dest=source, tag=TAGS.START)
             task_index += 1
         else:
@@ -67,8 +67,10 @@ def scatter_list(init_fun,run_fun,finish_fun):
         tprint('MPI - %d ranks, tot tasks %d' % (size,len(tasks)))
         while closed_index < size-1:
             time.sleep(0.1)
-            task_index,closed_index = __master_iter(comm,status,tasks,task_index,closed_index)    
-        tprint("MASTER %s,rank %d finished" % (name,rank))
+            task_index,closed_index = __master_iter(comm,status,tasks,task_index,closed_index)   
+        # finilize run
+        finish_fun(tasks)            
+        tprint("MASTER %s,rank %d finished processing %d tasks" % (name,rank,len(tasks)))
     else:
         #tprint("I am a worker with rank %d on %s." % (rank, name))    
         while True:
