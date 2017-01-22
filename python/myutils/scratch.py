@@ -23,6 +23,8 @@ sch = None
 def join(path):
     if sch is not None:
        return sch.join(path)    
+    else:
+        raise ValueError('Scratch has not been initialized yet !!!')
 
 def init(base_path):
     global sch

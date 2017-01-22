@@ -8,10 +8,12 @@ Created on Tue Dec 27 17:26:46 2016
 
 import myutils.filenames as fn
 from   myutils.utils import sysrun #,tprint #Base,,
-from   os.path import join,dirname
+#from   os.path import basename #dirname
 import multiprocessing
+from   myutils import mrc
+import numpy as np
 
-def untbz(tbzfile,**kwargs):
+def untbz(tbzfile,untbzdir,**kwargs):
     nth = kwargs.pop('nthreads',multiprocessing.cpu_count())
     ''' Uncompresses list of files from a tbz archive '''
     tarfile = fn.replace_ext(tbzfile, '.tar')
@@ -21,7 +23,7 @@ def untbz(tbzfile,**kwargs):
     if not status:
         raise RuntimeError(out + err)
     # Unzip tar
-    cmd = "tar -xf " + tarfile + " --directory=" + dirname(tarfile)
+    cmd = "tar -xf " + tarfile + " --directory=" + untbzdir #dirname(tarfile)
     out,err,status = sysrun(cmd) 
     if not status:
         raise RuntimeError(out + err)
@@ -31,17 +33,20 @@ def untbz(tbzfile,**kwargs):
     assert(status)  
     
 def dm4tomrc(fsrc,fdst):   
-    cmd     = "dm2mrc %s %s" % (fsrc, fdst)  
+    cmd     = "dm2mrc %s %s " % (fsrc, fdst)  
     out,err,status = sysrun(cmd) 
-    assert(status)  
+    #print out+err
+    assert(status)
     
-def tbz2mrc(tbzname,dstext,**kwargs):
-    ''' Unzips and converts to mrc. Cleans the tbz and the dm4 files '''
-    mname  = fn.file_only(tbzname) 
-    sdir   = dirname(tbzname) 
-    sname  = join(sdir,mname)    
-    untbz(tbzname,**kwargs)    
-    dm4s = sname + '*.dm4'
-    dm4tomrc(dm4s,sname + dstext)
-    out,err,status = sysrun('rm ' + dm4s)
-    assert(status)      
+def stackmrcs(fsrc,fdst):
+    cmd     = "newstack %s %s " % (fsrc, fdst)  
+    out,err,status = sysrun(cmd) 
+    #print out+err
+    assert(status)
+    
+def transpose_mrc(srcmrc,dstmrc):
+    g,psize = mrc.load_psize(srcmrc)
+    g       = np.ascontiguousarray(g.swapaxes(-1,-2))
+    mrc.save(g,dstmrc,pixel_size=psize)
+        
+
