@@ -89,6 +89,7 @@ static SubtractJobWindow *job_subtract;
 static PostJobWindow *job_post;
 static PolishJobWindow *job_polish;
 static ResmapJobWindow *job_resmap;
+static UnblurJobWindow *job_unblur;
 // Run button
 static Fl_Button *run_button;
 static Fl_Button *print_CL_button;
@@ -135,7 +136,6 @@ static StdOutDisplay *disp_stderr;
 
 class NoteEditorWindow : public Fl_Window
 {
-
 public:
 
 	FileName fn_note;

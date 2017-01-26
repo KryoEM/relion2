@@ -380,18 +380,15 @@ void FileNameEntry::deactivate(bool do_deactivate)
 	{
 		browse->activate();
 	}
-
 }
 
 void FileNameEntry::cb_browse(Fl_Widget* o, void* v) {
-
     FileNameEntry* T=(FileNameEntry*)v;
     T->cb_browse_i();
 }
 
 
 void FileNameEntry::cb_browse_i() {
-
     Fl::scheme("gtk+");
     Fl_File_Chooser * G_chooser = new Fl_File_Chooser("", pattern, Fl_File_Chooser::SINGLE, "");
 

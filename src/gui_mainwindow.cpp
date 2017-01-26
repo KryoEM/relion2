@@ -380,7 +380,7 @@ RelionMainWindow::RelionMainWindow(int w, int h, const char* title, FileName fn_
 
     browse_grp[1] = new Fl_Group(WCOL0, 2, 550, 615-MENUHEIGHT);
     browse_jobtype[1] = PROC_MOTIONCORR;
-    browser->add("Motion correction");
+    browser->add("Motion correction (MOTIONCORR)");
 	job_motioncorr = new MotioncorrJobWindow();
     browse_grp[1]->end();
 
@@ -480,11 +480,16 @@ RelionMainWindow::RelionMainWindow(int w, int h, const char* title, FileName fn_
 	job_resmap = new ResmapJobWindow();
     browse_grp[17]->end();
 
+    browse_grp[18] = new Fl_Group(WCOL0, 2, 550, 615-MENUHEIGHT);
+    browse_jobtype[18] = PROC_UNBLUR;
+    browser->add("Motion correction (Unblur)");
+    job_unblur = new UnblurJobWindow();
+    browse_grp[18]->end();
+
     browser->callback(cb_select_browsegroup);
     browser->textsize(RLN_FONTSIZE);
     browser->end();
     browser->select(1); // just start from the beginning
-
     // Pipeline part of the GUI
 
     menubar2 = new Fl_Menu_Bar(XJOBCOL1, GUIHEIGHT_EXT_START, 100, MENUHEIGHT);
@@ -991,6 +996,13 @@ long int RelionMainWindow::addToPipeLine(int as_status, bool do_overwrite, int t
 		oname = job_resmap->pipelineOutputName;
 		break;
 	}
+	case PROC_UNBLUR:
+	{
+		inputnodes = job_unblur->pipelineInputNodes;
+		outputnodes= job_unblur->pipelineOutputNodes;
+		oname = job_unblur->pipelineOutputName;
+		break;
+	}
 	default:
 	{
 		REPORT_ERROR("ERROR: unrecognised job-type to add to the pipeline");
@@ -1263,6 +1275,17 @@ bool RelionMainWindow::jobCommunicate(bool do_write, bool do_read, bool do_toggl
 		if (do_commandline)
 			result = job_resmap->getCommands(global_outputname, commands, final_command, do_makedir, pipeline.job_counter);
 		break;
+	}
+	case PROC_UNBLUR:
+	{
+		if (do_write)
+			job_unblur->write(fn_settings);
+		if (do_read)
+			job_unblur->read(fn_settings, is_main_continue);
+		if (do_toggle_continue)
+			job_unblur->toggle_new_continue(is_main_continue);
+		if (do_commandline)
+			result = job_unblur->getCommands(global_outputname, commands, final_command, do_makedir, pipeline.job_counter);
 	}
 	} // end switch
 

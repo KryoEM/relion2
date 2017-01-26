@@ -220,6 +220,47 @@ public:
 
 };
 
+class UnblurJobWindow : public RelionJobWindow
+{
+public:
+	InputNodeEntry input_star_mics;
+	SliderEntry angpix;
+	SliderEntry first_frame_sum;
+	SliderEntry last_frame_sum;
+
+	AnyEntry other_motioncorr_args;
+	BooleanEntry do_save_movies;
+
+	FileNameEntry fn_gain_ref;
+	SliderEntry group_frames;
+	FileNameEntry fn_unblur_exe;
+	FileNameEntry fn_summovie_exe;
+
+	BooleanEntry do_dose_weighting;
+	SliderEntry voltage;
+	SliderEntry dose_per_frame;
+	SliderEntry pre_exposure;
+
+	Fl_Group *dose_weight_group;
+	Fl_Group *unblur_group;
+public:
+	// Constructor
+	UnblurJobWindow();
+
+	// Destructor
+	~UnblurJobWindow(){};
+
+	// write/read settings to disc
+	void write(std::string fn);
+	void read(std::string fn, bool &_is_continue);
+
+	// what happens if you change continue old run radiobutton
+	void toggle_new_continue(bool is_continue);
+
+	bool getCommands(std::string &outputname, std::vector<std::string> &commands,
+			std::string &final_command, bool do_makedir, int job_counter);
+};
+
 class MotioncorrJobWindow : public RelionJobWindow
 {
 public:
@@ -241,8 +282,8 @@ public:
 	AnyEntry patch_x, patch_y;
 	SliderEntry group_frames;
 
-	BooleanEntry do_unblur;
-	FileNameEntry fn_unblur_exe;
+//	BooleanEntry do_unblur;
+//	FileNameEntry fn_unblur_exe;
 
 	// Dose-weighting
 	BooleanEntry do_dose_weighting;
@@ -252,7 +293,7 @@ public:
 
     AnyEntry gpu_ids;
 
-    Fl_Group *unblur_group, *motioncor2_group, *dose_weight_group;
+    Fl_Group /**unblur_group,*/ *motioncor2_group, *dose_weight_group;
 
 public:
 
