@@ -46,30 +46,30 @@
 #define DEFAULTALLOWCHANGEMINDEDICATED true
 
 static Fl_Menu_Item sampling_options[] = {
-		      {"30 degrees"},
-		      {"15 degrees"},
-		      {"7.5 degrees"},
-		      {"3.7 degrees"},
-		      {"1.8 degrees"},
-		      {"0.9 degrees"},
-		      {"0.5 degrees"},
-		      {"0.2 degrees"},
-		      {"0.1 degrees"},
-		      {0} // this should be the last entry
+		{"30 degrees"},
+		{"15 degrees"},
+		{"7.5 degrees"},
+		{"3.7 degrees"},
+		{"1.8 degrees"},
+		{"0.9 degrees"},
+		{"0.5 degrees"},
+		{"0.2 degrees"},
+		{"0.1 degrees"},
+		{0} // this should be the last entry
 };
 
 static Fl_Menu_Item node_type_options[] = {
-		      {"2D micrograph movies (*.mrcs)"},
-	          {"2D micrographs/tomograms (*.mrc)"},
-	          {"2D/3D particle coordinates (*.box, *_pick.star)"},
-	          {"Particles STAR file (.star)"},
-	          {"Movie-particles STAR file (.star)"},
-	          {"2D references (.star or .mrcs)"},
-	          {"Micrographs STAR file (.star)"},
-		      {"3D reference (.mrc)"},
-		      {"3D mask (.mrc)"},
-		      {"Unfiltered half-map (unfil.mrc)"},
-		      {0} // this should be the last entry
+		{"2D micrograph movies (*.mrcs)"},
+		{"2D micrographs/tomograms (*.mrc)"},
+		{"2D/3D particle coordinates (*.box, *_pick.star)"},
+		{"Particles STAR file (.star)"},
+		{"Movie-particles STAR file (.star)"},
+		{"2D references (.star or .mrcs)"},
+		{"Micrographs STAR file (.star)"},
+		{"3D reference (.mrc)"},
+		{"3D mask (.mrc)"},
+		{"Unfiltered half-map (unfil.mrc)"},
+		{0} // this should be the last entry
 };
 
 static int minimum_nr_dedicated;
@@ -96,17 +96,17 @@ public:
 
 	// Choice for new/continue
 	Fl_Choice *choice_continue;
-    Fl_Menu_ *menu_continue;
+	Fl_Menu_ *menu_continue;
 
 	// Tabs
-    Fl_Tabs *tabs;
+	Fl_Tabs *tabs;
 	Fl_Group *tab1, *tab2, *tab3, *tab4, *tab5, *tab6, *tab7, *runtab;
 
 	// Running
 	Fl_Group *queue_group;
 	SliderEntry nr_mpi;
 	SliderEntry nr_threads;
-    BooleanEntry do_queue;
+	BooleanEntry do_queue;
 	AnyEntry queuename;
 	AnyEntry qsub;
 	SliderEntry min_dedicated;
@@ -131,14 +131,14 @@ public:
 	RelionJobWindow(int nr_tabs, bool _has_mpi, bool _has_thread,
 			int x = WCOL0, int y = 2, int w = GUIWIDTH - WCOL0 - 10, int h = GUIHEIGHT_OLD-65, const char* title = "");
 
-    // Destructor
-    ~RelionJobWindow() {};
+	// Destructor
+	~RelionJobWindow() {};
 
-    void resetHeight();
+	void resetHeight();
 
-    void setupRunTab();
+	void setupRunTab();
 
-    // by default nothing happens if you change continue old run radiobutton
+	// by default nothing happens if you change continue old run radiobutton
 	void toggle_new_continue(bool is_continue);
 
 	// write/read settings to disc
@@ -159,8 +159,8 @@ public:
 
 private:
 
-    static void cb_menu_continue(Fl_Widget*, void*);
-    inline void cb_menu_continue_i();
+	static void cb_menu_continue(Fl_Widget*, void*);
+	inline void cb_menu_continue_i();
 
 };
 
@@ -190,7 +190,7 @@ public:
 	void getCommands(std::string &outputname, std::vector<std::string> &commands, std::string &final_command);
 
 };
-*/
+ */
 
 class ImportJobWindow : public RelionJobWindow
 {
@@ -218,6 +218,44 @@ public:
 	// Generate the correct commands
 	bool getCommands(std::string &outputname, std::vector<std::string> &commands, std::string &final_command, bool do_makedir, int job_counter);
 
+};
+class UnblurTbzJobWindow : public RelionJobWindow
+{
+public:
+	// I/O tab
+	InputNodeEntry input_star_mics;
+	SliderEntry first_frame_sum;
+	SliderEntry last_frame_sum;
+	BooleanEntry do_save_movies;
+
+	// Binaries tab
+	FileNameEntry fn_unblur_exe;
+	FileNameEntry fn_summovie_exe;
+
+	// Dose-weighting tab
+	BooleanEntry do_dose_weighting;
+	SliderEntry voltage;
+	SliderEntry dose_per_frame;
+	SliderEntry pre_exposure;
+
+	Fl_Group *dose_weight_group;
+
+public:
+	// Constructor
+	UnblurTbzJobWindow();
+
+	// Destructor
+	~UnblurTbzJobWindow(){};
+
+	// write/read settings to disc
+	void write(std::string fn);
+	void read(std::string fn, bool &_is_continue);
+
+	// what happens if you change continue old run radiobutton
+	void toggle_new_continue(bool is_continue);
+
+	bool getCommands(std::string &outputname, std::vector<std::string> &commands,
+			std::string &final_command, bool do_makedir, int job_counter);
 };
 
 class MotioncorrJobWindow : public RelionJobWindow
@@ -250,9 +288,9 @@ public:
 	SliderEntry dose_per_frame;
 	SliderEntry pre_exposure;
 
-    AnyEntry gpu_ids;
+	AnyEntry gpu_ids;
 
-    Fl_Group *unblur_group, *motioncor2_group, *dose_weight_group;
+	Fl_Group *unblur_group, *motioncor2_group, *dose_weight_group;
 
 public:
 
@@ -271,7 +309,6 @@ public:
 
 	bool getCommands(std::string &outputname, std::vector<std::string> &commands,
 			std::string &final_command, bool do_makedir, int job_counter);
-
 };
 
 class CtffindJobWindow : public RelionJobWindow
@@ -288,7 +325,7 @@ public:
 	AnyEntry phase_min, phase_max, phase_step;
 	AnyEntry movie_rootname;
 	BooleanEntry use_gctf, do_ignore_ctffind_params, do_EPA;
-    AnyEntry gpu_ids;
+	AnyEntry gpu_ids;
 
 	AnyEntry other_gctf_args;
 
@@ -343,8 +380,8 @@ public:
 	SliderEntry helical_tube_length_min;
 	SliderEntry helical_nr_asu;
 	SliderEntry helical_rise;
-    BooleanEntry use_gpu;
-    AnyEntry gpu_ids;
+	BooleanEntry use_gpu;
+	AnyEntry gpu_ids;
 
 	Fl_Group *autopick_ctf_group, *gauss_group, *autopick_helix_group, *gpu_group;
 
@@ -539,9 +576,9 @@ public:
 	BooleanEntry do_parallel_discio;
 	SliderEntry nr_pool;
 	BooleanEntry do_preread_images;
-    BooleanEntry use_gpu;
-    AnyEntry gpu_ids;
-    AnyEntry scratch_dir;
+	BooleanEntry use_gpu;
+	AnyEntry gpu_ids;
+	AnyEntry scratch_dir;
 
 
 	Fl_Group *ctf_group, *dont_skip_align_group, *helix_group, *gpu_group;
@@ -629,9 +666,9 @@ public:
 	BooleanEntry do_parallel_discio;
 	SliderEntry nr_pool;
 	BooleanEntry do_preread_images;
-    BooleanEntry use_gpu;
-    AnyEntry gpu_ids;
-    AnyEntry scratch_dir;
+	BooleanEntry use_gpu;
+	AnyEntry gpu_ids;
+	AnyEntry scratch_dir;
 
 	Fl_Group *ctf_group, *dont_skip_align_group, *localsearch_group, *helix_group, *helix_symmetry_search_group, *gpu_group;
 
@@ -714,9 +751,9 @@ public:
 	BooleanEntry do_parallel_discio;
 	SliderEntry nr_pool;
 	BooleanEntry do_preread_images;
-    BooleanEntry use_gpu;
-    AnyEntry gpu_ids;
-    AnyEntry scratch_dir;
+	BooleanEntry use_gpu;
+	AnyEntry gpu_ids;
+	AnyEntry scratch_dir;
 
 	Fl_Group *ctf_group, *helix_group, *helix_symmetry_search_group, *gpu_group;
 

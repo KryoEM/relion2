@@ -72,6 +72,7 @@ static Fl_XPM_Image *xpm_image;
 static std::vector<long int> running_processes, finished_processes, scheduled_processes, input_processes, output_processes, io_nodes;
 static bool is_main_continue;
 static ImportJobWindow *job_import;
+static UnblurTbzJobWindow *job_unblurtbz;
 static MotioncorrJobWindow *job_motioncorr;
 static CtffindJobWindow *job_ctffind;
 static ManualpickJobWindow *job_manualpick;
