@@ -937,7 +937,9 @@ bool UnblurTbzJobWindow::getCommands(std::string &outputname, std::vector<std::s
 	commands.clear();
 	initialisePipeline(outputname, "UnblurTBZ", job_counter);
 
-	std::string command = "`which unblur_tbz.py`";
+	// TODO: Come up with a better solution, this works perfectly fine for now but is ugly
+	std::string command = "for file in /etc/profile.d; do source $file; done; `which unblur_tbz.py`";
+
 
 	// I/O tab
 	if (input_star_mics.getValue() == "")
