@@ -938,7 +938,8 @@ bool UnblurTbzJobWindow::getCommands(std::string &outputname, std::vector<std::s
 	initialisePipeline(outputname, "UnblurTBZ", job_counter);
 
 	// TODO: Come up with a better solution, this works perfectly fine for now but is ugly
-	std::string command = "for file in /etc/profile.d; do source $file; done; `which unblur_tbz.py`";
+	// the 'do . $file' is synonymous with 'do source $file', except the dot works in all shells. (source is just bash)
+	std::string command = "for file in /etc/profile.d; do . $file; done; `which unblur_tbz.py`";
 
 
 	// I/O tab
