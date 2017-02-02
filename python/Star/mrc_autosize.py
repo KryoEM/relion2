@@ -5,12 +5,12 @@
 # Dependencies: Relion and IMOD
 
 
-# OPTIONAL TODO: add support for references other than .star files listing particle stacks.
+# TODO: add support for references other than .star files listing particle stacks.
 
 
 import argparse
 import subprocess
-import star
+import star2
 from common import *
 
 
@@ -28,10 +28,10 @@ def parse_args():
 
 # Get the path to the first particle stack .mrcs file listed in a star file, and its listed pixel size.
 def getAParticleStack(star_path):
-	particle_star = star.starFromPath(star_path)
-	line = particle_star.body.next()
-	particle_stack = particle_star.valueOf('ImageName', line).split('@')[1]
-	particle_angpix = particle_star.valueOf('DetectorPixelSize', line)
+	particle_star = star2.starFromPath(star_path)
+	element = particle_star.body.next()
+	particle_stack = element['ImageName'].split('@')[1]
+	particle_angpix = element['DetectorPixelSize']
 
 	return particle_stack, particle_angpix
 
