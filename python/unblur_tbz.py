@@ -39,9 +39,10 @@ def gain2mrc(basedir):
     # destination dir
     sdir     = scratch.join(SCRATCH_DIR)    
     path     = join(basedir,'*%s*.dm4' % GAINS_KEY)
-    gaindm4  = glob.glob(path)[0] 
-    if gaindm4 == []:
+    gaindm4  = glob.glob(path)
+    if len(gaindm4) == 0:
             raise IOError('Gain dm4 file not found in %s !!!' % basedir)
+    gaindm4  = gaindm4[0]
     gainmrc  = join(sdir,'gain.mrc')
     dstdm4   = join(sdir,'gain.dm4')
     # link dm4 with a simpler filename    
