@@ -90,7 +90,7 @@ class Node
 // This order defines the order of the process browser in the GUI!
 // TODO:#define PROC_IMPORT      	1 // Import any node into the pipeline (by reading them from external files)
 #define PROC_IMPORT         0 // Import any file as a Node of a given type
-#define PROC_MOTIONCORR 	1 // Import any file as a Node of a given type
+#define PROC_UNBLURTBZ		1
 #define PROC_CTFFIND	    2 // Estimate CTF parameters from micrographs for either entire micrographs and/or particles
 #define PROC_MANUALPICK		3 // Manually pick particle coordinates from micrographs
 #define PROC_AUTOPICK		4 // Automatically pick particle coordinates from micrographs, their CTF and 2D references
@@ -107,7 +107,8 @@ class Node
 #define PROC_POST			15// Post-processing (from unfiltered half-maps and a possibly a 3D mask)
 #define PROC_RESMAP			16// Local resolution estimation (from unfiltered half-maps and a 3D mask)
 #define PROC_MOVIEREFINE    17// Movie-particle extraction and refinement combined
-#define NR_BROWSE_TABS      18
+#define PROC_MOTIONCORR 	18 // Import any file as a Node of a given type
+#define NR_BROWSE_TABS      19
 
 // Status a Process may have
 #define PROC_RUNNING   0
