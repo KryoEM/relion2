@@ -106,6 +106,10 @@ public:
 	Fl_Group *queue_group;
 	SliderEntry nr_mpi;
 	SliderEntry nr_threads;
+
+	BooleanEntry use_round_robin;
+	FileNameEntry mpi_hostfile;
+
 	BooleanEntry do_queue;
 	AnyEntry queuename;
 	AnyEntry qsub;
