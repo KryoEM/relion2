@@ -672,7 +672,6 @@ void ImportJobWindow::toggle_new_continue(bool _is_continue)
 bool ImportJobWindow::getCommands(std::string &outputname, std::vector<std::string> &commands,
 		std::string &final_command, bool do_makedir, int job_counter)
 {
-
 	commands.clear();
 	initialisePipeline(outputname, "Import", job_counter);
 
@@ -682,11 +681,21 @@ bool ImportJobWindow::getCommands(std::string &outputname, std::vector<std::stri
 	if (node_type.getValue() == "2D micrograph movies (*.mrcs)")
 	{
 		outputstar = outputname+"movies.star";
-		command = "relion_star_loopheader rlnMicrographMovieName > " + outputstar;;
+		command = "relion_star_loopheader rlnMicrographMovieName > " + outputstar;
 		commands.push_back(command);
 		command = "ls " + fn_in.getValue() + " >> " + outputstar;
 		commands.push_back(command);
 		Node node(outputstar, NODE_MOVIES);
+		pipelineOutputNodes.push_back(node);
+	}
+	else if (node_type.getValue() == "TBZ compressed images (*.tbz)")
+	{
+		outputstar = outputname+"tbz_movies.star";
+		command = "relion_star_loopheader rlnMicrographName > " + outputstar;
+		commands.push_back(command);
+		command = "ls " + fn_in.getValue() + " >> " + outputstar;
+		commands.push_back(command);
+		Node node(outputstar, NODE_TBZMOVIES);
 		pipelineOutputNodes.push_back(node);
 	}
 	else if (node_type.getValue() == "2D micrographs/tomograms (*.mrc)")
@@ -817,7 +826,7 @@ UnblurTbzJobWindow::UnblurTbzJobWindow() : RelionJobWindow(3, HAS_MPI, HAS_THREA
 	tab1->label("I/O");
 	resetHeight();
 
-	input_star_mics.place(current_y, "Input .tbz movies STAR file:", NODE_MOVIES, "", "STAR files (*.star)", "A STAR file with all micrographs to run MOTIONCORR on");
+	input_star_mics.place(current_y, "Input .tbz movies STAR file:", NODE_TBZMOVIES, "", "STAR files (*.star)", "A STAR file with all micrographs to run MOTIONCORR on");
 	do_save_movies.place(current_y, "Save aligned movie stacks?", true,"Save the aligned movie stacks? Say Yes if you want to perform movie-processing in RELION as well. Say No if you only want to correct motions and write out the averages.");
 
 	current_y += STEPY/2;
@@ -948,9 +957,7 @@ bool UnblurTbzJobWindow::getCommands(std::string &outputname, std::vector<std::s
 	commands.clear();
 	initialisePipeline(outputname, "UnblurTBZ", job_counter);
 
-	// TODO: Come up with a better solution, this works perfectly fine for now but is ugly
-	// the 'do . $file' is synonymous with 'do source $file', except the dot works in all shells. (source is just bash)
-	std::string command = "for file in /etc/profile.d; do . $file; done; `which unblur_tbz.py`";
+	std::string command = "bash -l -c \"`which unblur_tbz.py`";
 
 
 	// I/O tab
@@ -992,6 +999,7 @@ bool UnblurTbzJobWindow::getCommands(std::string &outputname, std::vector<std::s
 		command += " -p " + floatToString(pre_exposure.getValue());
 	}
 
+	command += "\"";
 	commands.push_back(command);
 
 	return prepareFinalCommand(outputname, commands, final_command, do_makedir);

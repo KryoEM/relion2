@@ -69,6 +69,7 @@ static Fl_Menu_Item node_type_options[] = {
 		{"3D reference (.mrc)"},
 		{"3D mask (.mrc)"},
 		{"Unfiltered half-map (unfil.mrc)"},
+		{"TBZ compressed images (*.tbz)"},
 		{0} // this should be the last entry
 };
 
