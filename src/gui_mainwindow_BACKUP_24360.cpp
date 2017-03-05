@@ -279,15 +279,26 @@ RelionMainWindow::RelionMainWindow(int w, int h, const char* title, FileName fn_
 	// TODO: control file location and use better figure
 	background_grp = new Fl_Group(WCOL0-10, 0 ,w-WCOL0, h-55);
 
+<<<<<<< HEAD
 	// First look for image in the binary install directory,
 	// then in the source tree.
-
-    FileName fn_bg = std::string(INSTD_BG);
+	FileName fn_bg = std::string(INSTALL_LIBRARY_DIR) + std::string("gui_background.xpm");
 
 	if(!exists(fn_bg))
 	{
-        fn_bg = std::string(SRCD_BG);
+		fn_bg = std::string(SOURCE_DIR) + std::string("gui_background.xpm");
 	}
+=======
+    // First look for image in the binary install directory,
+    // then in the source tree.
+
+    FileName fn_bg = std::string(INSTD_BG);
+
+    if(!exists(fn_bg))
+    {
+        fn_bg = std::string(SRCD_BG);
+    }
+>>>>>>> new_relion/master
 
 	if (exists(fn_bg))
 	{
