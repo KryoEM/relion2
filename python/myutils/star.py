@@ -11,8 +11,10 @@ def getlist(starfile,key):
     with open(starfile) as f:
         content = f.readlines()
         
-    tf  = [l.find(key)==0 for l in content]
-    idx = [i for i, x in enumerate(tf) if x][0]
-    items = [content[i].strip() for i in range(idx+1,len(content))]
-    items = [c for c in items if len(c)>0 ]
+    tf   = [l.find(key)==0 for l in content]
+    idxs = [i for i, x in enumerate(tf) if x]
+    if len(idxs) == 0:
+        raise ValueError("Key %s not found in star file %s" % (key,starfile))
+    items = [content[i].strip() for i in range(idxs[0]+1,len(content))]
+    items = [c for c in items if len(c)>0]
     return items
