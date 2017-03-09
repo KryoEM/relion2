@@ -518,7 +518,7 @@ bool RelionJobWindow::prepareFinalCommand(std::string &outputname, std::vector<s
 					(commands[icom]).find("relion_") != std::string::npos) {
 				one_command = "time mpirun -n " + floatToString(nr_mpi.getValue()) + " ";
 				if (use_round_robin.getValue())
-					one_command += " --bynode ";
+					one_command += " --map-by node ";
 				if (!mpi_hostfile.getValue().empty())
 					one_command += " --hostfile " + mpi_hostfile.getValue() + " ";
 				one_command += commands[icom];
