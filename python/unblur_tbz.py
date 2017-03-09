@@ -187,7 +187,7 @@ def unblurmicro(unblurexe,sumexe,nth,ftbz,dstmdir,do_aligned_movies,
     
 def mpi_init(dstmdir,starfile):    
     '''Run by master rank 0 to initialize the processing'''
-    key  = '_rlnMicrographMovieName'
+    key  = '_rlnMicrographName'
     # directory for micrographs
     fn.mkdir_assure(dstmdir)   
     # read all tbz files from star file
