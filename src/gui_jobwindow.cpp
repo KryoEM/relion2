@@ -539,12 +539,12 @@ bool RelionJobWindow::prepareFinalCommand(std::string &outputname, std::vector<s
 		}
 	}
 
-	char * my_warn = getenv ("RELION_WARNING_LOCAL_MPI");
-	int my_nr_warn = (my_warn == NULL) ? DEFAULTWARNINGLOCALMPI : textToInteger(my_warn);
-	if (has_mpi && nr_mpi.getValue() > my_nr_warn && !do_queue.getValue())
-		return fl_choice( "You're submitting a local job with %i parallel MPI processes. Do you really want to run this?\n", "Don't run", "Run", NULL,  my_nr_warn);
-	else
-		return true;
+	//char * my_warn = getenv ("RELION_WARNING_LOCAL_MPI");
+	//int my_nr_warn = (my_warn == NULL) ? DEFAULTWARNINGLOCALMPI : textToInteger(my_warn);
+	//if (has_mpi && nr_mpi.getValue() > my_nr_warn && !do_queue.getValue())
+	//	return fl_choice( "You're submitting a local job with >= %i parallel MPI processes. Do you really want to run this?\n", "Don't run", "Run", NULL,  my_nr_warn);
+	//else
+	return true;
 }
 
 /*
