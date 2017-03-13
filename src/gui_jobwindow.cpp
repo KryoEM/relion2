@@ -514,7 +514,7 @@ bool RelionJobWindow::prepareFinalCommand(std::string &outputname, std::vector<s
 		{
 			// Is this a relion mpi program?
 			if ((has_mpi && nr_mpi.getValue() > 1)  &&
-				(commands[icom]).find("_mpi`") != std::string::npos &&
+				(commands[icom]).find("_mpi") != std::string::npos &&
 				(commands[icom]).find("relion_") != std::string::npos) {
 				one_command = "time mpirun -n " + floatToString(nr_mpi.getValue()) + " ";
 				if (use_round_robin.getValue())
@@ -3568,7 +3568,7 @@ within +/- the given amount (in degrees) from the optimal orientation in the pre
 A Gaussian prior (also see previous option) will be applied, so that orientations closer to the optimal orientation \
 in the previous iteration will get higher weights than those further away.\n\nThese ranges will only be applied to the \
 tilt and psi angles in the first few iterations (global searches for orientations) in 3D helical reconstruction. \
-Values of 9 or 15 degrees are commonly used. Higher values are recommended for more flexible structures and more memory and computation time will be used. \
+Values of 9 or 15 degrees are commonly used. Higher values are recommended for more flexible structures and more memory and computation  will be used. \
 A range of 15 degrees means sigma = 5 degrees.\n\nThese options will be invalid if you choose to perform local angular searches or not to perform image alignment on 'Sampling' tab.", XCOL2 + (WCOL2 + COLUMN_SEPARATION) / 2, STEPY, (WCOL2 - COLUMN_SEPARATION) / 2);
 	current_y += STEPY + 2;
 	helical_range_distance.place(current_y, "Range factor of local averaging:", -1., 1., 5., 0.1, "Local averaging of orientations and translations will be performed within a range of +/- this value * the box size. Polarities are also set to be the same for segments coming from the same tube during local refinement. \
