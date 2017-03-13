@@ -513,9 +513,9 @@ bool RelionJobWindow::prepareFinalCommand(std::string &outputname, std::vector<s
 		for (size_t icom = 0; icom < commands.size(); icom++)
 		{
 			// Is this a relion mpi program?
-			if (has_mpi && nr_mpi.getValue() > 1)  &&
-					(commands[icom]).find("_mpi`") != std::string::npos &&
-					(commands[icom]).find("relion_") != std::string::npos) {
+			if ((has_mpi && nr_mpi.getValue() > 1)  &&
+				(commands[icom]).find("_mpi`") != std::string::npos &&
+				(commands[icom]).find("relion_") != std::string::npos) {
 				one_command = "time mpirun -n " + floatToString(nr_mpi.getValue()) + " ";
 				if (use_round_robin.getValue())
 					one_command += " --map-by node ";
