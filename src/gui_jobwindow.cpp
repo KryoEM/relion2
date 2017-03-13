@@ -958,7 +958,7 @@ bool UnblurTbzJobWindow::getCommands(std::string &outputname, std::vector<std::s
 	commands.clear();
 	initialisePipeline(outputname, "UnblurTBZ", job_counter);
 
-	std::string command = "bash -l -c \"`which relion_unblur_tbz_mpi`";
+	std::string command = "bash -l -c \"`which relion_unblur_tbz_mpi.py`";
 
 
 	// I/O tab
