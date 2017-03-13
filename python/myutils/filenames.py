@@ -113,6 +113,9 @@ def file_only(path):
 def filenames(fullnames, ext):
     ''' return filename wothout dir and extension '''
     return [os.path.basename(f).replace(ext, '') for f in fullnames]
+
+def strip_ext(filenames):
+    return [replace_ext(f,'') for f in filenames]
             
 def dif_dirs(src_dirs,src_ext,dst_dir,dst_ext):
     ''' Return difference between names in src_dir and dst_dir '''
@@ -128,10 +131,13 @@ def dif_dirs(src_dirs,src_ext,dst_dir,dst_ext):
     return list(set(srcfiles) - set(dstfiles))  
 
 def list_minus_dir(nlist,dst_dir,dst_ext):
-    ''' Return difference between names in nlist and dst_dir '''
+    ''' Return difference between names in nlist (have to be with no extensions) and dst_dir '''
     dstfiles = glob.glob(os.path.join(dst_dir,'*'+dst_ext))    
-    dstfiles = filenames(dstfiles,dst_ext)  
-    return list(set(nlist) - set(dstfiles))  
+    dstfiles = filenames(dstfiles,dst_ext)
+    newfiles = filenames(strip_ext(nlist),'')
+    ind_dict = dict((k, i) for i, k in enumerate(newfiles))
+    diff     = set(ind_dict) - set(dstfiles)
+    return [nlist[ind_dict[x]] for x in diff] #list(set(nlist) - set(dstfiles))
         
 def last_dir(path):
     return os.path.basename(os.path.normpath(path))

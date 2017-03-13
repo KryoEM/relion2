@@ -18,10 +18,11 @@ from   myutils import star
 from   myutils import mpi
 from   functools import partial
 import argparse  
-import glob 
+import glob
 
 MOVSUFF         = '_movie.mrc'
 AVGSUFF         = '_avg.mrc'
+DIFF_SUFF       = '_movie_avg.mrc'
 ALNSUFF         = '_aligned.mrc'
 SCRATCH_DIR     = 'Unblur'
 MOVIE_DIR       = 'Movies'
@@ -185,16 +186,19 @@ def unblurmicro(unblurexe,sumexe,nth,ftbz,dstmdir,do_aligned_movies,
         # call summovie script
         mpi.verify(*sysrun('csh %s' % sum_csh))  
     
-def mpi_init(dstmdir,starfile):    
+def get_all_tasks(dstmdir,starfile):
     '''Run by master rank 0 to initialize the processing'''
     key  = '_rlnMicrographName'
     # directory for micrographs
     fn.mkdir_assure(dstmdir)   
     # read all tbz files from star file
-    tbzs      = star.getlist(starfile,key)    
-    if len(tbzs) == 0:
-        raise(IOError('No micrographs found in %s!' % starfile))    
-    return tbzs
+    tbzs      = star.getlist(starfile,key)
+    newtbzs   = fn.list_minus_dir(tbzs,join(dstmdir,MOVIE_DIR),DIFF_SUFF)
+    if len(newtbzs) == 0:
+        raise(IOError('No new micrographs found in %s!' % starfile))
+    else:
+        print('Found %d new files to process, tot files %d' % (len(newtbzs),len(tbzs)))
+    return newtbzs
     
 def mpi_run(dstdir,unblurexe,sumexe,nth,do_aligned_movies,dodose,dosummovie,
             dose_per_frame,vol,pre_exp,first_frame,last_frame,tbz):
@@ -237,7 +241,7 @@ def main_mpi(dstdir,starfile,unblurexe,sumexe,nth,do_aligned_movies,dodose,dosum
         assert(last_frame >= first_frame)        
     # init scratch for each slave
     scratch.init('/scratch')    
-    mpi.scatter_list(partial(mpi_init,dstdir,starfile),
+    mpi.scatter_list(partial(get_all_tasks,dstdir,starfile),
                      partial(mpi_run,dstdir,unblurexe,sumexe,nth,do_aligned_movies,dodose,dosummovie,
                              dose_per_frame,vol,pre_exp,first_frame,last_frame),
                      partial(mpi_finish,dstdir,do_aligned_movies))     
@@ -305,32 +309,35 @@ if __name__ == "__main__":
     last_frame          = kwargs['last_frame_sum']    
     dosummovie          = last_frame != 0 or first_frame !=0
     # call main function with all params
+    #tbzgroup = get_all_tasks(dstdir,starfile)
+
     main_mpi(dstdir, starfile, unblurexe, sumexe, nth, do_aligned_movies, dodose, dosummovie,
              dose_per_frame, vol, pre_exp, first_frame, last_frame)
     #tprint("Align status %d" % do_aligned_movies)    
 else:
-    #%% ----------------- TESTS -----------------------
-    starfile  = '/jasper/temp/betagal1/Import/job001/movies.star'
-    dstdir    = '/jasper/temp/betagal1/MotionCorr/job001/'
-    
-#    starfile  = '/jasper/temp/csy.star'
-#    dstdir    = '/jasper/temp/csy/'
-        
-    unblurexe = '/jasper/relion/Unblur/unblur_1.0.2/bin/unblur_openmp_7_17_15.exe'
-    sumexe    = '/jasper/relion/Summovie/summovie_1.0.2/bin/sum_movie_openmp_7_17_15.exe'
-    
-    nth       = 4
-    dodose    = False
-    dose_per_frame = 1.0
-    vol       = 300
-    pre_exp   = 1.0
-    do_aligned_movies = True
-    dosummovie = True
-    first_frame = 3
-    last_frame = 20
-    #%%
-    scratch.init('/scratch')    
-    tbzgroup = mpi_init(dstdir,starfile)
+#     #%% ----------------- TESTS -----------------------
+#     starfile  = '/jasper/temp/betagal1/Import/job001/movies.star'
+#     dstdir    = '/jasper/temp/betagal1/MotionCorr/job001/'
+#
+# #    starfile  = '/jasper/temp/csy.star'
+# #    dstdir    = '/jasper/temp/csy/'
+#
+#     unblurexe = '/jasper/relion/Unblur/unblur_1.0.2/bin/unblur_openmp_7_17_15.exe'
+#     sumexe    = '/jasper/relion/Summovie/summovie_1.0.2/bin/sum_movie_openmp_7_17_15.exe'
+#
+#     nth       = 4
+#     dodose    = False
+#     dose_per_frame = 1.0
+#     vol       = 300
+#     pre_exp   = 1.0
+#     do_aligned_movies = True
+#     dosummovie = True
+#     first_frame = 3
+#     last_frame = 20
+#     #%%
+#     scratch.init('/scratch')
+
+    tbzgroup = get_all_tasks(dstdir,starfile)
     #tbzgroup = [tbzgroup[0],tbzgroup[1]]
     tbzgroup = [tbzgroup[0]]
     
