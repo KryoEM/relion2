@@ -521,7 +521,11 @@ bool RelionJobWindow::prepareFinalCommand(std::string &outputname, std::vector<s
 					one_command += " --map-by node ";
 				if (!mpi_hostfile.getValue().empty())
 					one_command += " --hostfile " + mpi_hostfile.getValue() + " ";
+				// add bash -l option
+				//std::string command = "bash -l -c \"`which relion_unblur_tbz_mpi.py`";
+				one_command += "bash -l -c \"";
 				one_command += commands[icom];
+				one_command += "\"";
 			}
 			else
 			{
@@ -958,7 +962,8 @@ bool UnblurTbzJobWindow::getCommands(std::string &outputname, std::vector<std::s
 	commands.clear();
 	initialisePipeline(outputname, "UnblurTBZ", job_counter);
 
-	std::string command = "bash -l -c \"`which relion_unblur_tbz_mpi.py`";
+	//std::string command = "bash -l -c \"`which relion_unblur_tbz_mpi.py`";
+	std::string command = "`which relion_unblur_tbz_mpi.py`";
 
 
 	// I/O tab
@@ -1000,7 +1005,7 @@ bool UnblurTbzJobWindow::getCommands(std::string &outputname, std::vector<std::s
 		command += " -p " + floatToString(pre_exposure.getValue());
 	}
 
-	command += "\"";
+	//command += "\"";
 	commands.push_back(command);
 
 	return prepareFinalCommand(outputname, commands, final_command, do_makedir);
@@ -1247,6 +1252,8 @@ bool MotioncorrJobWindow::getCommands(std::string &outputname, std::vector<std::
 
 	std::string command;
 	if (nr_mpi.getValue() > 1)
+       //std::string command = "bash -l -c \"`which relion_unblur_tbz_mpi.py`";
+
 		command="`which relion_run_motioncorr_mpi`";
 	else
 		command="`which relion_run_motioncorr`";
