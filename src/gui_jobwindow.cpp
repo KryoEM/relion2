@@ -404,7 +404,7 @@ void RelionJobWindow::saveJobSubmissionScript(std::string newfilename, std::stri
 	int nnodes = CEIL(fnodes);
 	if (fmod(fnodes, 1) > 0)
 	{
-		std:: cout << std::endl;
+		std::cout << std::endl;
 		std::cout << " Warning! You're using " << nmpi << " MPI processes with " << nthr << " threads each (i.e. " << ncores << " cores), while asking for " << nnodes << " nodes with " << ndedi << " cores." << std::endl;
 		std::cout << " It is more efficient to make the number of cores (i.e. mpi*threads) a multiple of the minimum number of dedicated cores per node " << std::endl;
 	}
@@ -512,6 +512,9 @@ bool RelionJobWindow::prepareFinalCommand(std::string &outputname, std::vector<s
 		final_command = "";
 		for (size_t icom = 0; icom < commands.size(); icom++)
 		{
+
+			std::string bashcommand = "bash -l -c \"" + commands[icom] + "\"";
+
 			// Is this a relion mpi program?
 			if ((has_mpi && nr_mpi.getValue() > 1)  &&
 				(commands[icom]).find("_mpi") != std::string::npos &&
@@ -522,14 +525,11 @@ bool RelionJobWindow::prepareFinalCommand(std::string &outputname, std::vector<s
 				if (!mpi_hostfile.getValue().empty())
 					one_command += " --hostfile " + mpi_hostfile.getValue() + " ";
 				// add bash -l option
-				//std::string command = "bash -l -c \"`which relion_unblur_tbz_mpi.py`";
-				one_command += "bash -l -c \"";
-				one_command += commands[icom];
-				one_command += "\"";
+				one_command += bashcommand; //commands[icom];
 			}
 			else
 			{
-				one_command = commands[icom];
+				one_command = bashcommand;
 			}
 			// Save stdout and stderr to a .out and .err files
 			// But only when a re-direct '>' is NOT already present on the command line!
@@ -543,7 +543,9 @@ bool RelionJobWindow::prepareFinalCommand(std::string &outputname, std::vector<s
 		}
 	}
 
-	//char * my_warn = getenv ("RELION_WARNING_LOCAL_MPI");
+	std::cout << final_command << std::endl;
+
+ 	//char * my_warn = getenv ("RELION_WARNING_LOCAL_MPI");
 	//int my_nr_warn = (my_warn == NULL) ? DEFAULTWARNINGLOCALMPI : textToInteger(my_warn);
 	//if (has_mpi && nr_mpi.getValue() > my_nr_warn && !do_queue.getValue())
 	//	return fl_choice( "You're submitting a local job with >= %i parallel MPI processes. Do you really want to run this?\n", "Don't run", "Run", NULL,  my_nr_warn);
@@ -1252,8 +1254,6 @@ bool MotioncorrJobWindow::getCommands(std::string &outputname, std::vector<std::
 
 	std::string command;
 	if (nr_mpi.getValue() > 1)
-       //std::string command = "bash -l -c \"`which relion_unblur_tbz_mpi.py`";
-
 		command="`which relion_run_motioncorr_mpi`";
 	else
 		command="`which relion_run_motioncorr`";
