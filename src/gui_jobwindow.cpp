@@ -695,10 +695,10 @@ bool ImportJobWindow::getCommands(std::string &outputname, std::vector<std::stri
 		Node node(outputstar, NODE_MOVIES);
 		pipelineOutputNodes.push_back(node);
 	}
-	else if (node_type.getValue() == "TBZ compressed images (*.tbz)")
+	else if (node_type.getValue() == "TBZ compressed movies (*.tbz)")
 	{
 		outputstar = outputname+"tbz_movies.star";
-		command = "relion_star_loopheader rlnMicrographName > " + outputstar;
+		command = "relion_star_loopheader rlnTbzMovieName > " + outputstar;
 		commands.push_back(command);
 		command = "ls " + fn_in.getValue() + " >> " + outputstar;
 		commands.push_back(command);
@@ -833,7 +833,7 @@ UnblurTbzJobWindow::UnblurTbzJobWindow() : RelionJobWindow(3, HAS_MPI, HAS_THREA
 	tab1->label("I/O");
 	resetHeight();
 
-	input_star_mics.place(current_y, "Input .tbz movies STAR file:", NODE_TBZMOVIES, "", "STAR files (*.star)", "A STAR file with all micrographs to run MOTIONCORR on");
+	input_star_mics.place(current_y, "Input .tbz movies STAR file:", NODE_TBZMOVIES, "", "STAR files (*.star)", "A STAR file with all TBZ-compressed movies to run Unblur on");
 	do_save_movies.place(current_y, "Save aligned movie stacks?", true,"Save the aligned movie stacks? Say Yes if you want to perform movie-processing in RELION as well. Say No if you only want to correct motions and write out the averages.");
 
 	current_y += STEPY/2;
