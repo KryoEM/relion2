@@ -186,7 +186,6 @@ void RelionJobWindow::setupRunTab()
 	if (has_mpi)
 	{
 		nr_mpi.place(current_y, "Number of MPI procs:", 1, 1, 64, 1, "Number of MPI nodes to use in parallel. When set to 1, MPI will not be used.");
-		use_round_robin.place(current_y, "Use round robin scheduling?", true, "If set to true, the MPI jobs will be scheduled to each host in the hostfile in a circular order. If this option is false, the slots on each host will be completely filled up before moving on to the next node.");
 		mpi_hostfile.place(current_y, "MPI hostfile:", "", "MPI hostfiles (*.*)", NULL, "The file that mpirun will use to figure out how to allocate jobs to nodes. If you leave this blank, the default hostfile already present on the host will be used instead.");
 	}
 	if (has_thread)
@@ -520,8 +519,6 @@ bool RelionJobWindow::prepareFinalCommand(std::string &outputname, std::vector<s
 				(commands[icom]).find("_mpi") != std::string::npos &&
 				(commands[icom]).find("relion_") != std::string::npos) {
 				one_command = "/usr/bin/time -p -o run.out -a mpirun -n " + floatToString(nr_mpi.getValue()) + " ";
-				if (use_round_robin.getValue())
-					one_command += " --map-by node ";
 				if (!mpi_hostfile.getValue().empty())
 					one_command += " --hostfile " + mpi_hostfile.getValue() + " ";
 				// add bash -l option
