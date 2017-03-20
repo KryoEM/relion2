@@ -390,7 +390,7 @@ void RelionJobWindow::saveJobSubmissionScript(std::string newfilename, std::stri
 
 	// Open the standard job submission file
 	int err_no;
-	if (err_no = textbuf->loadfile(qsubscript.getValue().c_str()))
+	if ((err_no = textbuf->loadfile(qsubscript.getValue().c_str())))
 		fl_alert("Error reading from file \'%s\':\n%s.", qsubscript.getValue().c_str(), strerror(err_no));
 
 	// default to a single thread
@@ -456,7 +456,7 @@ void RelionJobWindow::saveJobSubmissionScript(std::string newfilename, std::stri
 	textbuf->append("\n");
 
 	// Save the modified job submission script using a local name
-	if (err_no = textbuf->savefile(newfilename.c_str()))
+	if ((err_no = textbuf->savefile(newfilename.c_str())))
 		fl_alert("Error writing to file \'%s\':\n%s.", newfilename.c_str(), strerror(err_no));
 
 }

@@ -344,6 +344,7 @@ public:
 		done->callback( cb_done, this);
 		result = _result;
 		show();
+        return 0;
 	}
 
 	static void cb_done(Fl_Widget* o, void* v)

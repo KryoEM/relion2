@@ -239,6 +239,7 @@ int basisViewerWindow::fillCanvas(int viewer_type, MetaDataTable &MDin, EMDLabel
 		show();
 		return Fl::run();
 	}
+    return 0;
 }
 
 int basisViewerWindow::fillPickerViewerCanvas(MultidimArray<RFLOAT> image, RFLOAT _minval, RFLOAT _maxval, RFLOAT _sigma_contrast,
@@ -433,8 +434,9 @@ int basisViewerCanvas::fill(MetaDataTable &MDin, EMDLabel display_label, bool _d
 
 	if (nr_imgs > 1)
 		progress_bar(nr_imgs);
-
+    return 0;
 }
+
 int basisViewerCanvas::fill(MultidimArray<RFLOAT> &image, RFLOAT _minval, RFLOAT _maxval, RFLOAT _sigma_contrast, RFLOAT _scale)
 {
 	xoff = yoff = 0;
@@ -450,7 +452,7 @@ int basisViewerCanvas::fill(MultidimArray<RFLOAT> &image, RFLOAT _minval, RFLOAT
 	my_box->setData(image, MDtmp.getObject(), 0, _minval, _maxval, _scale, true);
 	my_box->redraw();
 	boxes.push_back(my_box);
-
+    return 0;
 }
 
 void basisViewerCanvas::getImageContrast(MultidimArray<RFLOAT> &image, RFLOAT &minval, RFLOAT &maxval, RFLOAT &sigma_contrast)
@@ -2118,6 +2120,7 @@ int Displayer::runGui()
 	}
 
 	win.fill(fn_in);
+    return 0;
 }
 
 
@@ -2172,90 +2175,75 @@ int Displayer::run()
         win.fillCanvas(MULTIVIEWER, MDin, display_label, do_read_whole_stacks, do_apply_orient, minval, maxval, sigma_contrast, scale, ori_scale, ncol,
         		max_nr_images, do_class, &MDdata, nr_regroups, do_recenter, fn_in.contains("_data.star"), &MDgroups, do_allow_save, fn_selected_imgs, fn_selected_parts);
 
-    }
-    else
-    {
+    } else {
         // Attempt to read a single-file image
         Image<RFLOAT> img;
         img.read(fn_in, false); // dont read data yet: only header to get size
 
         MDin.clear();
         // display stacks
-        if (NSIZE(img()) > 1)
-        {
-        	for (int n = 0; n < NSIZE(img()); n++)
-        	{
-        		FileName fn_tmp;
-        		fn_tmp.compose(n+1,fn_in);
-        		MDin.addObject();
-        		MDin.setValue(EMDL_IMAGE_NAME, fn_tmp);
-        	}
+        if (NSIZE(img()) > 1) {
+            for (int n = 0; n < NSIZE(img()); n++) {
+                FileName fn_tmp;
+                fn_tmp.compose(n + 1, fn_in);
+                MDin.addObject();
+                MDin.setValue(EMDL_IMAGE_NAME, fn_tmp);
+            }
             basisViewerWindow win(MULTIVIEW_WINDOW_WIDTH, MULTIVIEW_WINDOW_HEIGHT, fn_in.c_str());
-            win.fillCanvas(MULTIVIEWER, MDin, EMDL_IMAGE_NAME, true, false, minval, maxval, sigma_contrast, scale, ori_scale, ncol, max_nr_images);
-        }
-        else if (ZSIZE(img()) > 1)
-        {
+            win.fillCanvas(MULTIVIEWER, MDin, EMDL_IMAGE_NAME, true, false, minval, maxval, sigma_contrast, scale,
+                           ori_scale, ncol, max_nr_images);
+        } else if (ZSIZE(img()) > 1) {
 
-        	// Read volume slices from .mrc as if it were a .mrcs stack and then use normal slice viewer
-        	// This will not work for Spider volumes...
-        	if (fn_in.getFileFormat() != "mrc")
-        		REPORT_ERROR("Displayer::run() ERROR: only MRC maps are allowed...");
+            // Read volume slices from .mrc as if it were a .mrcs stack and then use normal slice viewer
+            // This will not work for Spider volumes...
+            if (fn_in.getFileFormat() != "mrc")
+                REPORT_ERROR("Displayer::run() ERROR: only MRC maps are allowed...");
 
-        	// Use a single minval and maxval for all slice
-        	if (minval == maxval)
-        	{
-        		Image<RFLOAT> It;
-        		It.read(fn_in);
-        		It().computeDoubleMinMax(minval, maxval);
-        	}
+            // Use a single minval and maxval for all slice
+            if (minval == maxval) {
+                Image<RFLOAT> It;
+                It.read(fn_in);
+                It().computeDoubleMinMax(minval, maxval);
+            }
 
-        	// Trick MD with :mrcs extension....
-        	for (int n = 0; n < ZSIZE(img()); n++)
-        	{
-        		FileName fn_tmp;
-        		fn_tmp.compose(n+1,fn_in);
-        		fn_tmp += ":mrcs";
-        		MDin.addObject();
-        		MDin.setValue(EMDL_IMAGE_NAME, fn_tmp);
-        	}
+            // Trick MD with :mrcs extension....
+            for (int n = 0; n < ZSIZE(img()); n++) {
+                FileName fn_tmp;
+                fn_tmp.compose(n + 1, fn_in);
+                fn_tmp += ":mrcs";
+                MDin.addObject();
+                MDin.setValue(EMDL_IMAGE_NAME, fn_tmp);
+            }
 
             basisViewerWindow win(MULTIVIEW_WINDOW_WIDTH, MULTIVIEW_WINDOW_HEIGHT, fn_in.c_str());
-            win.fillCanvas(MULTIVIEWER, MDin, EMDL_IMAGE_NAME, true, false, minval, maxval, sigma_contrast, scale, ori_scale, ncol, max_nr_images);
-        }
-        else
-        {
-        	img.read(fn_in); // now read image data as well (not only header)
+            win.fillCanvas(MULTIVIEWER, MDin, EMDL_IMAGE_NAME, true, false, minval, maxval, sigma_contrast, scale,
+                           ori_scale, ncol, max_nr_images);
+        } else {
+            img.read(fn_in); // now read image data as well (not only header)
 
             if (lowpass > 0.)
-            	lowPassFilterMap(img(), lowpass, angpix);
+                lowPassFilterMap(img(), lowpass, angpix);
             if (highpass > 0.)
-            	highPassFilterMap(img(), highpass, angpix);
+                highPassFilterMap(img(), highpass, angpix);
 
             MDin.addObject();
             MDin.setValue(EMDL_IMAGE_NAME, fn_in);
             RFLOAT new_scale = scale;
             if (show_fourier_amplitudes || show_fourier_phase_angles)
-            	new_scale *= 2.;
-            basisViewerWindow win(CEIL(new_scale*XSIZE(img())), CEIL(new_scale*YSIZE(img())), fn_in.c_str());
-            if (show_fourier_amplitudes)
-            {
-            	amplitudeOrPhaseMap(img(), img(), AMPLITUDE_MAP);
-            	win.fillSingleViewerCanvas(img(), minval, maxval, sigma_contrast, scale);
-            }
-            else if (show_fourier_phase_angles)
-            {
-            	amplitudeOrPhaseMap(img(), img(), PHASE_MAP);
-            	win.fillSingleViewerCanvas(img(), -180., 180., 0., scale);
-            }
-            else
-            {
+                new_scale *= 2.;
+            basisViewerWindow win(CEIL(new_scale * XSIZE(img())), CEIL(new_scale * YSIZE(img())), fn_in.c_str());
+            if (show_fourier_amplitudes) {
+                amplitudeOrPhaseMap(img(), img(), AMPLITUDE_MAP);
+                win.fillSingleViewerCanvas(img(), minval, maxval, sigma_contrast, scale);
+            } else if (show_fourier_phase_angles) {
+                amplitudeOrPhaseMap(img(), img(), PHASE_MAP);
+                win.fillSingleViewerCanvas(img(), -180., 180., 0., scale);
+            } else {
                 win.fillSingleViewerCanvas(img(), minval, maxval, sigma_contrast, scale);
             }
         }
 
     }
-
-
-
+    return 0;
 }
 
