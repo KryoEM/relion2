@@ -269,7 +269,7 @@ bool ParallelTaskDistributor::getTasks(size_t &first, size_t &last)
 
 bool ParallelTaskDistributor::setAssignedTasks(size_t tasks)
 {
-    if (tasks < 0 || tasks >= numberOfTasks)
+    if (tasks >= numberOfTasks)
         return false;
     lock();
     assignedTasks = tasks;

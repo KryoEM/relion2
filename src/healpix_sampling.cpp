@@ -2094,8 +2094,8 @@ void HealpixSampling::removeSymmetryEquivalentPointsGeometric(const int symmetry
         _3_fold_axis_3_by_3_fold_axis_1.selfNormalize();
         for (long int i = 0; i < rot_angles.size(); i++)
         {
-            if (rot_angles[i] >=     90. &&
-                rot_angles[i] <=   150. ||
+			if ((rot_angles[i] >= 90.0 &&
+				 rot_angles[i] <= 150.0) ||
                 rot_angles[i] ==     0
                )
                 if (

@@ -665,12 +665,12 @@ void RadioEntry::cb_menu_i()
 	inp->value(m->label());
 
 	// In case this was a boolean that deactivates a group, do so:
-	if (my_deactivate_group != NULL)
-	if (strcmp(inp->value(), "No") == 0)
-		my_deactivate_group->deactivate();
-	else
-		my_deactivate_group->activate();
-
+    if (my_deactivate_group != NULL) {
+        if (strcmp(inp->value(), "No") == 0)
+            my_deactivate_group->deactivate();
+        else
+            my_deactivate_group->activate();
+    }
 }
 
 // ==============================================================================
