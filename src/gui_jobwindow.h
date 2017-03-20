@@ -79,7 +79,6 @@ static bool do_allow_change_minimum_dedicated;
 
 // Output filenames of relion_refine (use iter=-1 for auto-refine)
 std::vector<Node> getOutputNodesRefine(std::string outputname, int iter, int K, int dim, int nr_bodies = 1, bool do_movies = false, bool do_also_rot = false);
-
 class RelionJobWindow : public Fl_Box
 {
 protected:
