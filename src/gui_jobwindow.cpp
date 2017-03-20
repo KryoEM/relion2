@@ -82,7 +82,6 @@ std::vector<Node> getOutputNodesRefine(std::string outputname, int iter, int K, 
 RelionJobWindow::RelionJobWindow(int nr_tabs, bool _has_mpi, bool _has_thread,
 		int x, int y, int w, int h, const char* title) : Fl_Box(x,y,w,h,title)
 {
-
 	current_y = y;
 	has_mpi = _has_mpi;
 	has_thread = _has_thread;
@@ -169,9 +168,7 @@ RelionJobWindow::RelionJobWindow(int nr_tabs, bool _has_mpi, bool _has_thread,
 		runtab->selection_color(GUI_BACKGROUND_COLOR2);
 
 		tabs->end();
-
 	}
-
 }
 
 void RelionJobWindow::resetHeight()
@@ -185,9 +182,11 @@ void RelionJobWindow::setupRunTab()
 
 	if (has_mpi)
 	{
+        const char *hostfile_default = getenv("RELION_DEFAULT_HOSTFILE") != NULL ? ".default_hostfile" : "";
 		nr_mpi.place(current_y, "Number of MPI procs:", 1, 1, 64, 1, "Number of MPI nodes to use in parallel. When set to 1, MPI will not be used.");
-		mpi_hostfile.place(current_y, "MPI hostfile:", "", "MPI hostfiles (*.*)", NULL, "The file that mpirun will use to figure out how to allocate jobs to nodes. If you leave this blank, the default hostfile already present on the host will be used instead.");
-	}
+        mpi_hostfile.place(current_y, "MPI hostfile:", hostfile_default, "MPI hostfiles (*.*)", NULL,
+                           "The file that mpirun will use to figure out how to allocate jobs to nodes. If you leave this blank, the system-wide default hostfile (usually located at /etc/openmpi/openmpi-default-hostfile for openmpi) will be used instead.");
+    }
 	if (has_thread)
 		nr_threads.place(current_y, "Number of threads:", 1, 1, 16, 1, "Number of shared-memory (POSIX) threads to use in parallel. \
 When set to 1, no multi-threading will be used. Multi-threading is often useful in 3D refinements to have more memory. 2D class averaging often proceeds more efficiently without threads.");
@@ -605,7 +604,6 @@ bool XXXXJobWindow::getCommands(std::string &outputname, std::vector<std::string
 
 ImportJobWindow::ImportJobWindow() : RelionJobWindow(1, HAS_NOT_MPI, HAS_NOT_THREAD)
 {
-
 	type = PROC_IMPORT;
 
 	tab1->begin();
