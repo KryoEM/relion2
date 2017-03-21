@@ -543,7 +543,7 @@ bool RelionJobWindow::prepareFinalCommand(std::string &outputname, std::vector<s
 		}
 	}
 
-	std::cout << final_command << std::endl;
+	std::cout << "Running ===>" << final_command << std::endl;
 
  	//char * my_warn = getenv ("RELION_WARNING_LOCAL_MPI");
 	//int my_nr_warn = (my_warn == NULL) ? DEFAULTWARNINGLOCALMPI : textToInteger(my_warn);
