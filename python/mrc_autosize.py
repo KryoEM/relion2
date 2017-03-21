@@ -10,9 +10,15 @@
 
 import argparse
 import subprocess
-import star
-from common import *
+from   star import star
+#from common import *
+import numpy as np
+from   myutils.utils import sysrun,tprint 
+from   myutils import filenames as fn
 
+def allSame(sizes):
+	sizes = np.array(sizes,dtype='double')
+	return np.all(sizes==sizes[0])
 
 def parse_args():
 	parser = argparse.ArgumentParser(
@@ -104,8 +110,11 @@ def main(input_path, reference_path, out_path):
 
 
 	print "Creating a copy of the input map."
-	working_mrc = insertSuffix('_tmp', out_path)
-	shell(['cp', input_path, working_mrc])
+	working_mrc = fn.replace_ext(out_path,'_tmp.mrc') #insertSuffix('_tmp', out_path)
+	#shell(['cp', input_path, working_mrc])
+	out,err,status = sysrun('cp %s %s' % (input_path,working_mrc))
+	assert(status)        
+
 
 
 	# if not all the box dimensions of the input mrc are the same, expand the box to the largest dimension
@@ -121,7 +130,9 @@ def main(input_path, reference_path, out_path):
 	resize(working_mrc, ref_size)
 
 	# change map name to user-specified destination
-	shell(['mv', working_mrc, out_path])
+	#shell(['mv', working_mrc, out_path])
+	out,err,status = sysrun('mv %s %s' % (working_mrc,out_path))
+	assert(status)        
 
 	print 'Auto-sizing completed. New map located at: ' + out_path
 
