@@ -10,7 +10,7 @@
 
 import argparse
 import subprocess
-import star
+from   star import star
 #from common import *
 import numpy as np
 from   myutils.utils import sysrun,tprint 
