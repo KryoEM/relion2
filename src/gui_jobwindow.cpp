@@ -82,7 +82,6 @@ std::vector<Node> getOutputNodesRefine(std::string outputname, int iter, int K, 
 RelionJobWindow::RelionJobWindow(int nr_tabs, bool _has_mpi, bool _has_thread,
 		int x, int y, int w, int h, const char* title) : Fl_Box(x,y,w,h,title)
 {
-
 	current_y = y;
 	has_mpi = _has_mpi;
 	has_thread = _has_thread;
@@ -169,9 +168,7 @@ RelionJobWindow::RelionJobWindow(int nr_tabs, bool _has_mpi, bool _has_thread,
 		runtab->selection_color(GUI_BACKGROUND_COLOR2);
 
 		tabs->end();
-
 	}
-
 }
 
 void RelionJobWindow::resetHeight()
@@ -185,10 +182,11 @@ void RelionJobWindow::setupRunTab()
 
 	if (has_mpi)
 	{
+        const char *hostfile_default = getenv("RELION_DEFAULT_HOSTFILE") != NULL ? ".default_hostfile" : "";
 		nr_mpi.place(current_y, "Number of MPI procs:", 1, 1, 64, 1, "Number of MPI nodes to use in parallel. When set to 1, MPI will not be used.");
-		use_round_robin.place(current_y, "Use round robin scheduling?", true, "If set to true, the MPI jobs will be scheduled to each host in the hostfile in a circular order. If this option is false, the slots on each host will be completely filled up before moving on to the next node.");
-		mpi_hostfile.place(current_y, "MPI hostfile:", "", "MPI hostfiles (*.*)", NULL, "The file that mpirun will use to figure out how to allocate jobs to nodes. If you leave this blank, the default hostfile already present on the host will be used instead.");
-	}
+        mpi_hostfile.place(current_y, "MPI hostfile:", hostfile_default, "MPI hostfiles (*.*)", NULL,
+                           "The file that mpirun will use to figure out how to allocate jobs to nodes. If you leave this blank, the system-wide default hostfile (usually located at /etc/openmpi/openmpi-default-hostfile for openmpi) will be used instead.");
+    }
 	if (has_thread)
 		nr_threads.place(current_y, "Number of threads:", 1, 1, 16, 1, "Number of shared-memory (POSIX) threads to use in parallel. \
 When set to 1, no multi-threading will be used. Multi-threading is often useful in 3D refinements to have more memory. 2D class averaging often proceeds more efficiently without threads.");
@@ -392,7 +390,7 @@ void RelionJobWindow::saveJobSubmissionScript(std::string newfilename, std::stri
 
 	// Open the standard job submission file
 	int err_no;
-	if (err_no = textbuf->loadfile(qsubscript.getValue().c_str()))
+	if ((err_no = textbuf->loadfile(qsubscript.getValue().c_str())))
 		fl_alert("Error reading from file \'%s\':\n%s.", qsubscript.getValue().c_str(), strerror(err_no));
 
 	// default to a single thread
@@ -458,7 +456,7 @@ void RelionJobWindow::saveJobSubmissionScript(std::string newfilename, std::stri
 	textbuf->append("\n");
 
 	// Save the modified job submission script using a local name
-	if (err_no = textbuf->savefile(newfilename.c_str()))
+	if ((err_no = textbuf->savefile(newfilename.c_str())))
 		fl_alert("Error writing to file \'%s\':\n%s.", newfilename.c_str(), strerror(err_no));
 
 }
@@ -519,9 +517,7 @@ bool RelionJobWindow::prepareFinalCommand(std::string &outputname, std::vector<s
 			if ((has_mpi && nr_mpi.getValue() > 1)  &&
 				(commands[icom]).find("_mpi") != std::string::npos &&
 				(commands[icom]).find("relion_") != std::string::npos) {
-				one_command = "time mpirun -n " + floatToString(nr_mpi.getValue()) + " ";
-				if (use_round_robin.getValue())
-					one_command += " --map-by node ";
+				one_command = "/usr/bin/time -p -o run.out -a mpirun -n " + floatToString(nr_mpi.getValue()) + " ";
 				if (!mpi_hostfile.getValue().empty())
 					one_command += " --hostfile " + mpi_hostfile.getValue() + " ";
 				// add bash -l option
@@ -608,7 +604,6 @@ bool XXXXJobWindow::getCommands(std::string &outputname, std::vector<std::string
 
 ImportJobWindow::ImportJobWindow() : RelionJobWindow(1, HAS_NOT_MPI, HAS_NOT_THREAD)
 {
-
 	type = PROC_IMPORT;
 
 	tab1->begin();
@@ -695,10 +690,10 @@ bool ImportJobWindow::getCommands(std::string &outputname, std::vector<std::stri
 		Node node(outputstar, NODE_MOVIES);
 		pipelineOutputNodes.push_back(node);
 	}
-	else if (node_type.getValue() == "TBZ compressed images (*.tbz)")
+	else if (node_type.getValue() == "TBZ compressed movies (*.tbz)")
 	{
 		outputstar = outputname+"tbz_movies.star";
-		command = "relion_star_loopheader rlnMicrographName > " + outputstar;
+		command = "relion_star_loopheader rlnTbzMovieName > " + outputstar;
 		commands.push_back(command);
 		command = "ls " + fn_in.getValue() + " >> " + outputstar;
 		commands.push_back(command);
@@ -833,7 +828,7 @@ UnblurTbzJobWindow::UnblurTbzJobWindow() : RelionJobWindow(3, HAS_MPI, HAS_THREA
 	tab1->label("I/O");
 	resetHeight();
 
-	input_star_mics.place(current_y, "Input .tbz movies STAR file:", NODE_TBZMOVIES, "", "STAR files (*.star)", "A STAR file with all micrographs to run MOTIONCORR on");
+	input_star_mics.place(current_y, "Input .tbz movies STAR file:", NODE_TBZMOVIES, "", "STAR files (*.star)", "A STAR file with all TBZ-compressed movies to run Unblur on");
 	do_save_movies.place(current_y, "Save aligned movie stacks?", true,"Save the aligned movie stacks? Say Yes if you want to perform movie-processing in RELION as well. Say No if you only want to correct motions and write out the averages.");
 
 	current_y += STEPY/2;

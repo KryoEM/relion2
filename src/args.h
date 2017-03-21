@@ -145,7 +145,8 @@ public:
     IOParser(const IOParser &in);
 
     /**Assignment operator */
-    IOParser& operator= (const IOParser &in);
+//    IOParser& operator= (const IOParser &in);
+    void operator=(const IOParser &in);
 
     /** Destructor */
     ~IOParser();

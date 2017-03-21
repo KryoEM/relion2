@@ -202,6 +202,7 @@ void Timer::initZero()
 
 int Timer::setNew(const std::string tag)
 {
+	//std::cerr << " tag = " << tag << std::endl;
 	start_times.push_back(end_time);
 	counts.push_back(0);
 	times.push_back(0);
@@ -220,6 +221,7 @@ int Timer::toc(int timer)
 	gettimeofday(&end_time, NULL);
 	times[timer] += (end_time.tv_sec - start_times[timer].tv_sec) * 1000000 +
 				   (end_time.tv_usec - start_times[timer].tv_usec);
+    return 0;
 }
 
 void Timer::printTimes(bool doClear)

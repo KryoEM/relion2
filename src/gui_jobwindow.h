@@ -69,7 +69,7 @@ static Fl_Menu_Item node_type_options[] = {
 		{"3D reference (.mrc)"},
 		{"3D mask (.mrc)"},
 		{"Unfiltered half-map (unfil.mrc)"},
-		{"TBZ compressed images (*.tbz)"},
+		{"TBZ compressed movies (*.tbz)"},
 		{0} // this should be the last entry
 };
 
@@ -79,7 +79,6 @@ static bool do_allow_change_minimum_dedicated;
 
 // Output filenames of relion_refine (use iter=-1 for auto-refine)
 std::vector<Node> getOutputNodesRefine(std::string outputname, int iter, int K, int dim, int nr_bodies = 1, bool do_movies = false, bool do_also_rot = false);
-
 class RelionJobWindow : public Fl_Box
 {
 protected:
