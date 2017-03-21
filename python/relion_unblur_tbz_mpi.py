@@ -14,7 +14,7 @@ from   myutils import mrc
 from   os.path import join,dirname,splitext
 from   myutils.utils import sysrun,tprint 
 import shutil
-from   myutils import star 
+from   star import star 
 from   myutils import mpi
 from   functools import partial
 import argparse  
