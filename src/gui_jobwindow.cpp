@@ -82,7 +82,6 @@ std::vector<Node> getOutputNodesRefine(std::string outputname, int iter, int K, 
 RelionJobWindow::RelionJobWindow(int nr_tabs, bool _has_mpi, bool _has_thread,
 		int x, int y, int w, int h, const char* title) : Fl_Box(x,y,w,h,title)
 {
-
 	current_y = y;
 	has_mpi = _has_mpi;
 	has_thread = _has_thread;
@@ -169,9 +168,7 @@ RelionJobWindow::RelionJobWindow(int nr_tabs, bool _has_mpi, bool _has_thread,
 		runtab->selection_color(GUI_BACKGROUND_COLOR2);
 
 		tabs->end();
-
 	}
-
 }
 
 void RelionJobWindow::resetHeight()
@@ -184,8 +181,12 @@ void RelionJobWindow::setupRunTab()
 	resetHeight();
 
 	if (has_mpi)
+	{
+        const char *hostfile_default = getenv("RELION_DEFAULT_HOSTFILE") != NULL ? ".default_hostfile" : "";
 		nr_mpi.place(current_y, "Number of MPI procs:", 1, 1, 64, 1, "Number of MPI nodes to use in parallel. When set to 1, MPI will not be used.");
-
+        mpi_hostfile.place(current_y, "MPI hostfile:", hostfile_default, "MPI hostfiles (*.*)", NULL,
+                           "The file that mpirun will use to figure out how to allocate jobs to nodes. If you leave this blank, the system-wide default hostfile (usually located at /etc/openmpi/openmpi-default-hostfile for openmpi) will be used instead.");
+    }
 	if (has_thread)
 		nr_threads.place(current_y, "Number of threads:", 1, 1, 16, 1, "Number of shared-memory (POSIX) threads to use in parallel. \
 When set to 1, no multi-threading will be used. Multi-threading is often useful in 3D refinements to have more memory. 2D class averaging often proceeds more efficiently without threads.");
@@ -389,7 +390,7 @@ void RelionJobWindow::saveJobSubmissionScript(std::string newfilename, std::stri
 
 	// Open the standard job submission file
 	int err_no;
-	if (err_no = textbuf->loadfile(qsubscript.getValue().c_str()))
+	if ((err_no = textbuf->loadfile(qsubscript.getValue().c_str())))
 		fl_alert("Error reading from file \'%s\':\n%s.", qsubscript.getValue().c_str(), strerror(err_no));
 
 	// default to a single thread
@@ -401,7 +402,7 @@ void RelionJobWindow::saveJobSubmissionScript(std::string newfilename, std::stri
 	int nnodes = CEIL(fnodes);
 	if (fmod(fnodes, 1) > 0)
 	{
-		std:: cout << std::endl;
+		std::cout << std::endl;
 		std::cout << " Warning! You're using " << nmpi << " MPI processes with " << nthr << " threads each (i.e. " << ncores << " cores), while asking for " << nnodes << " nodes with " << ndedi << " cores." << std::endl;
 		std::cout << " It is more efficient to make the number of cores (i.e. mpi*threads) a multiple of the minimum number of dedicated cores per node " << std::endl;
 	}
@@ -438,7 +439,8 @@ void RelionJobWindow::saveJobSubmissionScript(std::string newfilename, std::stri
 	for (int icom = 0; icom < commands.size(); icom++)
 	{
 		// Is this a relion mpi program?
-		if ((commands[icom]).find("_mpi`") != std::string::npos && (commands[icom]).find("relion_") != std::string::npos)
+		if ((commands[icom]).find("relion_") != std::string::npos &&
+				((commands[icom]).find("_mpi`") != std::string::npos || nr_mpi_commands == 0) ) // if there are no MPI programs, then still use XXXcommandXXX once
 		{
 			replaceStringOnce(textbuf, "XXXcommandXXX", commands[icom] );
 		}
@@ -454,7 +456,7 @@ void RelionJobWindow::saveJobSubmissionScript(std::string newfilename, std::stri
 	textbuf->append("\n");
 
 	// Save the modified job submission script using a local name
-	if (err_no = textbuf->savefile(newfilename.c_str()))
+	if ((err_no = textbuf->savefile(newfilename.c_str())))
 		fl_alert("Error writing to file \'%s\':\n%s.", newfilename.c_str(), strerror(err_no));
 
 }
@@ -508,13 +510,23 @@ bool RelionJobWindow::prepareFinalCommand(std::string &outputname, std::vector<s
 		final_command = "";
 		for (size_t icom = 0; icom < commands.size(); icom++)
 		{
+
+			std::string bashcommand = "bash -l -c \"" + commands[icom] + "\"";
+
 			// Is this a relion mpi program?
-			if (has_mpi && nr_mpi.getValue() > 1 &&
-					(commands[icom]).find("_mpi`") != std::string::npos &&
-					(commands[icom]).find("relion_") != std::string::npos)
-				one_command = "mpirun -n " + floatToString(nr_mpi.getValue()) + " " + commands[icom] ;
+			if ((has_mpi && nr_mpi.getValue() > 1)  &&
+				(commands[icom]).find("_mpi") != std::string::npos &&
+				(commands[icom]).find("relion_") != std::string::npos) {
+				one_command = "/usr/bin/time -p -o run.out -a mpirun -n " + floatToString(nr_mpi.getValue()) + " ";
+				if (!mpi_hostfile.getValue().empty())
+					one_command += " --hostfile " + mpi_hostfile.getValue() + " ";
+				// add bash -l option
+				one_command += bashcommand; //commands[icom];
+			}
 			else
-				one_command = commands[icom];
+			{
+				one_command = bashcommand;
+			}
 			// Save stdout and stderr to a .out and .err files
 			// But only when a re-direct '>' is NOT already present on the command line!
 			if (std::string::npos == commands[icom].find(">"))
@@ -527,12 +539,14 @@ bool RelionJobWindow::prepareFinalCommand(std::string &outputname, std::vector<s
 		}
 	}
 
-	char * my_warn = getenv ("RELION_WARNING_LOCAL_MPI");
-	int my_nr_warn = (my_warn == NULL) ? DEFAULTWARNINGLOCALMPI : textToInteger(my_warn);
-	if (has_mpi && nr_mpi.getValue() > my_nr_warn && !do_queue.getValue())
-		return fl_choice( "You're submitting a local job with %i parallel MPI processes. Do you really want to run this?\n", "Don't run", "Run", NULL,  my_nr_warn);
-	else
-		return true;
+	std::cout << final_command << std::endl;
+
+ 	//char * my_warn = getenv ("RELION_WARNING_LOCAL_MPI");
+	//int my_nr_warn = (my_warn == NULL) ? DEFAULTWARNINGLOCALMPI : textToInteger(my_warn);
+	//if (has_mpi && nr_mpi.getValue() > my_nr_warn && !do_queue.getValue())
+	//	return fl_choice( "You're submitting a local job with >= %i parallel MPI processes. Do you really want to run this?\n", "Don't run", "Run", NULL,  my_nr_warn);
+	//else
+	return true;
 }
 
 /*
@@ -590,7 +604,6 @@ bool XXXXJobWindow::getCommands(std::string &outputname, std::vector<std::string
 
 ImportJobWindow::ImportJobWindow() : RelionJobWindow(1, HAS_NOT_MPI, HAS_NOT_THREAD)
 {
-
 	type = PROC_IMPORT;
 
 	tab1->begin();
@@ -661,7 +674,6 @@ void ImportJobWindow::toggle_new_continue(bool _is_continue)
 bool ImportJobWindow::getCommands(std::string &outputname, std::vector<std::string> &commands,
 		std::string &final_command, bool do_makedir, int job_counter)
 {
-
 	commands.clear();
 	initialisePipeline(outputname, "Import", job_counter);
 
@@ -671,11 +683,21 @@ bool ImportJobWindow::getCommands(std::string &outputname, std::vector<std::stri
 	if (node_type.getValue() == "2D micrograph movies (*.mrcs)")
 	{
 		outputstar = outputname+"movies.star";
-		command = "relion_star_loopheader rlnMicrographMovieName > " + outputstar;;
+		command = "relion_star_loopheader rlnMicrographMovieName > " + outputstar;
 		commands.push_back(command);
 		command = "ls " + fn_in.getValue() + " >> " + outputstar;
 		commands.push_back(command);
 		Node node(outputstar, NODE_MOVIES);
+		pipelineOutputNodes.push_back(node);
+	}
+	else if (node_type.getValue() == "TBZ compressed movies (*.tbz)")
+	{
+		outputstar = outputname+"tbz_movies.star";
+		command = "relion_star_loopheader rlnTbzMovieName > " + outputstar;
+		commands.push_back(command);
+		command = "ls " + fn_in.getValue() + " >> " + outputstar;
+		commands.push_back(command);
+		Node node(outputstar, NODE_TBZMOVIES);
 		pipelineOutputNodes.push_back(node);
 	}
 	else if (node_type.getValue() == "2D micrographs/tomograms (*.mrc)")
@@ -806,7 +828,7 @@ UnblurTbzJobWindow::UnblurTbzJobWindow() : RelionJobWindow(3, HAS_MPI, HAS_THREA
 	tab1->label("I/O");
 	resetHeight();
 
-	input_star_mics.place(current_y, "Input .tbz movies STAR file:", NODE_MOVIES, "", "STAR files (*.star)", "A STAR file with all micrographs to run MOTIONCORR on");
+	input_star_mics.place(current_y, "Input .tbz movies STAR file:", NODE_TBZMOVIES, "", "STAR files (*.star)", "A STAR file with all TBZ-compressed movies to run Unblur on");
 	do_save_movies.place(current_y, "Save aligned movie stacks?", true,"Save the aligned movie stacks? Say Yes if you want to perform movie-processing in RELION as well. Say No if you only want to correct motions and write out the averages.");
 
 	current_y += STEPY/2;
@@ -937,9 +959,8 @@ bool UnblurTbzJobWindow::getCommands(std::string &outputname, std::vector<std::s
 	commands.clear();
 	initialisePipeline(outputname, "UnblurTBZ", job_counter);
 
-	// TODO: Come up with a better solution, this works perfectly fine for now but is ugly
-	// the 'do . $file' is synonymous with 'do source $file', except the dot works in all shells. (source is just bash)
-	std::string command = "for file in /etc/profile.d; do . $file; done; `which unblur_tbz.py`";
+	//std::string command = "bash -l -c \"`which relion_unblur_tbz_mpi.py`";
+	std::string command = "`which relion_unblur_tbz_mpi.py`";
 
 
 	// I/O tab
@@ -981,6 +1002,7 @@ bool UnblurTbzJobWindow::getCommands(std::string &outputname, std::vector<std::s
 		command += " -p " + floatToString(pre_exposure.getValue());
 	}
 
+	//command += "\"";
 	commands.push_back(command);
 
 	return prepareFinalCommand(outputname, commands, final_command, do_makedir);
@@ -2648,8 +2670,13 @@ SortJobWindow::SortJobWindow() : RelionJobWindow(2, HAS_MPI, HAS_NOT_THREAD)
 	tab1->end();
 
 	tab2->begin();
-	tab2->label("CTF");
+	tab2->label("References");
 	resetHeight();
+
+	angpix_ref.place(current_y, "Pixel size in references (A)", -1, 0.3, 5, 0.1, "Pixel size in Angstroms for the provided reference images. This will be used to calculate the filters and the particle diameter in pixels. If a negative value is given here, the pixel size in the references will be assumed to be the same as the one in the micrographs, i.e. the particles that were used to make the references were not rescaled upon extraction.");
+
+	// Add a little spacer
+	current_y += STEPY/2;
 
 	ctf_group = new Fl_Group(WCOL0,  MENUHEIGHT, 550, 600-MENUHEIGHT, "");
 	ctf_group->end();
@@ -2679,6 +2706,7 @@ void SortJobWindow::write(std::string fn)
 	input_star.writeValue(fh);
 	is_autopick.writeValue(fh);
 	autopick_refs.writeValue(fh);
+	angpix_ref.writeValue(fh);
 	do_ctf.writeValue(fh);
 	do_ignore_first_ctfpeak.writeValue(fh);
 
@@ -2699,6 +2727,7 @@ void SortJobWindow::read(std::string fn, bool &_is_continue)
 		input_star.readValue(fh);
 		is_autopick.readValue(fh);
 		autopick_refs.readValue(fh);
+		angpix_ref.readValue(fh);
 		do_ctf.readValue(fh);
 		do_ignore_first_ctfpeak.readValue(fh);
 
@@ -2715,6 +2744,7 @@ void SortJobWindow::toggle_new_continue(bool _is_continue)
 	input_star.deactivate(is_continue);
 	is_autopick.deactivate(is_continue);
 	autopick_refs.deactivate(is_continue);
+	angpix_ref.deactivate(is_continue);
 	do_ctf.deactivate(is_continue);
 	do_ignore_first_ctfpeak.deactivate(is_continue);
 
@@ -2741,6 +2771,9 @@ bool SortJobWindow::getCommands(std::string &outputname, std::vector<std::string
 	command += " --i " + input_star.getValue();
 	Node node(input_star.getValue(), input_star.type);
 	pipelineInputNodes.push_back(node);
+
+	if (angpix_ref.getValue() > 0.)
+		command += " --angpix_ref " + floatToString(angpix_ref.getValue());
 
 	// Determine the --ref automatically, from the particle input filename
 	FileName fn_ref, fn_in = input_star.getValue();
@@ -3537,7 +3570,7 @@ within +/- the given amount (in degrees) from the optimal orientation in the pre
 A Gaussian prior (also see previous option) will be applied, so that orientations closer to the optimal orientation \
 in the previous iteration will get higher weights than those further away.\n\nThese ranges will only be applied to the \
 tilt and psi angles in the first few iterations (global searches for orientations) in 3D helical reconstruction. \
-Values of 9 or 15 degrees are commonly used. Higher values are recommended for more flexible structures and more memory and computation time will be used. \
+Values of 9 or 15 degrees are commonly used. Higher values are recommended for more flexible structures and more memory and computation  will be used. \
 A range of 15 degrees means sigma = 5 degrees.\n\nThese options will be invalid if you choose to perform local angular searches or not to perform image alignment on 'Sampling' tab.", XCOL2 + (WCOL2 + COLUMN_SEPARATION) / 2, STEPY, (WCOL2 - COLUMN_SEPARATION) / 2);
 	current_y += STEPY + 2;
 	helical_range_distance.place(current_y, "Range factor of local averaging:", -1., 1., 5., 0.1, "Local averaging of orientations and translations will be performed within a range of +/- this value * the box size. Polarities are also set to be the same for segments coming from the same tube during local refinement. \
@@ -5565,7 +5598,12 @@ bool ClassSelectJobWindow::getCommands(std::string &outputname, std::vector<std:
 	// Re-grouping
 	if (do_regroup.getValue() && fn_coords.getValue() == "")
 	{
-		command += " --regroup " + floatToString(nr_groups.getValue());
+            if (fn_model.getValue() == "")
+            {
+                fl_message("Re-grouping only works for model.star files...");
+		return false;
+            }
+            command += " --regroup " + floatToString(nr_groups.getValue());
 	}
 
 	// Other arguments

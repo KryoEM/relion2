@@ -99,9 +99,14 @@ IOParser::IOParser(const IOParser &in)
 	copy(in);
 }
 
-IOParser& IOParser::operator= (const IOParser &in)
+//IOParser& IOParser::operator= (const IOParser &in)
+//{
+//	copy(in);
+//}
+
+void IOParser::operator=(const IOParser &in)
 {
-	copy(in);
+    copy(in);
 }
 
 IOParser::~IOParser()

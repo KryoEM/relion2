@@ -220,6 +220,7 @@ int Timer::toc(int timer)
 	gettimeofday(&end_time, NULL);
 	times[timer] += (end_time.tv_sec - start_times[timer].tv_sec) * 1000000 +
 				   (end_time.tv_usec - start_times[timer].tv_usec);
+    return 0;
 }
 
 void Timer::printTimes(bool doClear)

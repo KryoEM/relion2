@@ -48,7 +48,7 @@ def __master_iter(comm,status,tasks,task_index,closed_index):
         closed_index += 1                          
     return task_index,closed_index
                     
-def scatter_list(init_fun,run_fun,finish_fun):
+def scatter_list(get_all_tasks,run_fun,finish_fun):
     ''' Evenly scatters a list of elements returned by calling init_fun among all MPI 
         ranks and processes sub-lists in parallel '''
     comm   = MPI.COMM_WORLD
@@ -58,10 +58,10 @@ def scatter_list(init_fun,run_fun,finish_fun):
     status = MPI.Status()
     if size < 2:
         raise(IOError("Please use 2 ranks at least for MPI processing!"))
-    # master dispatches work to all slaves including master himself
+    # master does only slave management work - no computations
     if rank == 0:
         # obtain elements for mpi processing
-        tasks          = init_fun()
+        tasks = get_all_tasks()
         # scheduled task index and closed workers index
         task_index,closed_index = 0,0
         tprint('MPI - %d ranks, tot tasks %d' % (size,len(tasks)))
@@ -72,7 +72,7 @@ def scatter_list(init_fun,run_fun,finish_fun):
         finish_fun(tasks)            
         tprint("MASTER %s,rank %d finished processing %d tasks" % (name,rank,len(tasks)))
     else:
-        #tprint("I am a worker with rank %d on %s." % (rank, name))    
+        # workers only do the processing work
         while True:
             # do only workers stuff
             if __worker_iter(run_fun,comm,status) == TAGS.EXIT: 

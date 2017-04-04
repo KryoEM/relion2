@@ -20,6 +20,10 @@
 #include "src/gui_mainwindow.h"
 
 #define DEBUG
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+#define INSTD_BG 	STR(INSTALL_LIBRARY_DIR) "gui_background.xpm"
+#define SRCD_BG 	STR(INSTALL_LIBRARY_DIR) "gui_background.xpm"
 
 // The StdOutDisplay allows looking at the entire stdout or stderr file
 int StdOutDisplay::handle(int ev)
@@ -154,7 +158,7 @@ void SchedulerWindow::cb_execute_i()
 	if (exists(fn_check))
 	{
 		std::string msg =  "ERROR: a file called " + fn_check + " already exists. \n This implies another set of scheduled jobs with this name is already running. \n Cancelling job execution...";
-		fl_message(msg.c_str());
+		fl_message("%s",msg.c_str());
 	}
 	else
 	{
@@ -254,7 +258,7 @@ RelionMainWindow::RelionMainWindow(int w, int h, const char* title, FileName fn_
 	show_initial_screen = true;
 	do_order_alphabetically = false;
 
-	FileName fn_lock=".gui_projectdir";
+    FileName fn_lock = ".gui_projectdir";
 	if (!exists(fn_lock))
 	{
 		std::cout << " Only run the relion GUI from your ProjectDirectory. Do you want to start a new project here [y/n]? ";
@@ -269,6 +273,29 @@ RelionMainWindow::RelionMainWindow(int w, int h, const char* title, FileName fn_
 		}
 	}
 
+    // Copy RELION hostfile to the project directory
+    FileName hf_name = ".default_hostfile";
+    if (!exists(hf_name)) {
+        // Get value of environment variable that points to the ansible-playbook-created hostfile
+        char *hf_env = getenv("RELION_DEFAULT_HOSTFILE");
+
+        // If the environment variable exists, copy the default hostfile to the project directory
+        // If it doesn't leave the default hostfile field blank
+        // TODO: Discuss behavior if the environment variable doesn't exist (what should happen)
+        if (hf_env != NULL) {
+            if (exists(hf_env)) {
+                copy(hf_env, ".default_hostfile");
+            }
+        } else {
+            std::cout
+                    << "Warning: Cannot find default hostfile. A blank hostfile has been created in the project directory for further editing."
+                            " RELION will use the system-wide hostfile, but this can be changed by editing the blank hostfile that was just created and specifying this hostfile in the 'Running' tab."
+                            " For more information, see help dialog for 'MPI hostfile' in the 'Running' tab."
+                    << std::endl;
+            touch(".default_hostfile");
+        }
+    }
+
 	// First setup the old part of the GUI
 	h = GUIHEIGHT_OLD;
 
@@ -277,11 +304,12 @@ RelionMainWindow::RelionMainWindow(int w, int h, const char* title, FileName fn_
 
 	// First look for image in the binary install directory,
 	// then in the source tree.
-	FileName fn_bg = std::string(INSTALL_LIBRARY_DIR) + std::string("gui_background.xpm");
+
+    FileName fn_bg = std::string(INSTD_BG);
 
 	if(!exists(fn_bg))
 	{
-		fn_bg = std::string(SOURCE_DIR) + std::string("gui_background.xpm");
+        fn_bg = std::string(SRCD_BG);
 	}
 
 	if (exists(fn_bg))

@@ -5,14 +5,20 @@
 # Dependencies: Relion and IMOD
 
 
-# TODO: add support for references other than .star files listing particle stacks.
+# OPTIONAL TODO: add support for references other than .star files listing particle stacks.
 
 
 import argparse
 import subprocess
-import star2
-from common import *
+from   star import star
+#from common import *
+import numpy as np
+from   myutils.utils import sysrun,tprint 
+from   myutils import filenames as fn
 
+def allSame(sizes):
+	sizes = np.array(sizes,dtype='double')
+	return np.all(sizes==sizes[0])
 
 def parse_args():
 	parser = argparse.ArgumentParser(
@@ -28,10 +34,10 @@ def parse_args():
 
 # Get the path to the first particle stack .mrcs file listed in a star file, and its listed pixel size.
 def getAParticleStack(star_path):
-	particle_star = star2.starFromPath(star_path)
-	element = particle_star.body.next()
-	particle_stack = element['ImageName'].split('@')[1]
-	particle_angpix = element['DetectorPixelSize']
+	particle_star = star.starFromPath(star_path)
+	line = particle_star.body.next()
+	particle_stack = particle_star.valueOf('ImageName', line).split('@')[1]
+	particle_angpix = particle_star.valueOf('DetectorPixelSize', line)
 
 	return particle_stack, particle_angpix
 
@@ -104,8 +110,11 @@ def main(input_path, reference_path, out_path):
 
 
 	print "Creating a copy of the input map."
-	working_mrc = insertSuffix('_tmp', out_path)
-	shell(['cp', input_path, working_mrc])
+	working_mrc = fn.replace_ext(out_path,'_tmp.mrc') #insertSuffix('_tmp', out_path)
+	#shell(['cp', input_path, working_mrc])
+	out,err,status = sysrun('cp %s %s' % (input_path,working_mrc))
+	assert(status)        
+
 
 
 	# if not all the box dimensions of the input mrc are the same, expand the box to the largest dimension
@@ -121,7 +130,9 @@ def main(input_path, reference_path, out_path):
 	resize(working_mrc, ref_size)
 
 	# change map name to user-specified destination
-	shell(['mv', working_mrc, out_path])
+	#shell(['mv', working_mrc, out_path])
+	out,err,status = sysrun('mv %s %s' % (working_mrc,out_path))
+	assert(status)        
 
 	print 'Auto-sizing completed. New map located at: ' + out_path
 
