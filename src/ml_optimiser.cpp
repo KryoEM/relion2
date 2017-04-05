@@ -1245,6 +1245,7 @@ void MlOptimiser::initialiseGeneral(int rank)
     		REPORT_ERROR("ERROR: you did not specify the pixel size. Use the --angpix option to do so.");
 
 		// Read in the reference(s) and initialise mymodel
+		// Moved here in order to support for mrc rescaling and resizing, so need to have mymodel.pixel_size to be set
 		mymodel.readImages(fn_ref, ori_size, mydata,
 						   do_average_unaligned, do_generate_seeds, refs_are_ctf_corrected);
 
