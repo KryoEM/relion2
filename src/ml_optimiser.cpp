@@ -1211,10 +1211,6 @@ void MlOptimiser::initialiseGeneral(int rank)
 		if (ori_size%2 != 0)
 			REPORT_ERROR("This program only works with even values for the image dimensions!");
 
-		// Read in the reference(s) and initialise mymodel
-		mymodel.readImages(fn_ref, ori_size, mydata,
-				do_average_unaligned, do_generate_seeds, refs_are_ctf_corrected);
-
     	// Check consistency of EMDL_CTF_MAGNIFICATION and MEBL_CTF_DETECTOR_PIXEL_SIZE with mymodel.pixel_size
     	RFLOAT mag, dstep, first_angpix, my_angpix;
     	bool has_magn = false;
@@ -1247,6 +1243,11 @@ void MlOptimiser::initialiseGeneral(int rank)
 
     	if (!has_magn && mymodel.pixel_size < 0.)
     		REPORT_ERROR("ERROR: you did not specify the pixel size. Use the --angpix option to do so.");
+
+		// Read in the reference(s) and initialise mymodel
+		mymodel.readImages(fn_ref, ori_size, mydata,
+						   do_average_unaligned, do_generate_seeds, refs_are_ctf_corrected);
+
 	}
 	// Expand movies if fn_data_movie is given AND we were not doing expanded movies already
 	else if (fn_data_movie != "" && !do_realign_movies)

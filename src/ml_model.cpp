@@ -612,7 +612,22 @@ void MlModel::readImages(FileName fn_ref, int _ori_size, Experiment &_mydata,
 		// For a single image, read this image as reference and set it in all nr_classes Irefs
 		else
 		{
-			img.read(fn_ref);
+			//----------- Run mrc conversion first -----------------
+			std::ostringstream stringStream;
+			stringStream << "_box_" << _ori_size << "_psize_" << this->pixel_size;
+			stringStream.precision(4);
+			FileName fn_ref_out(fn_ref.insertBeforeExtension(stringStream.str()));
+			std::ostringstream command;
+			command.precision(6);
+			//  construct mrc conversion command
+			command << "relion_mrc_resize.py " << " -i " << fn_ref << " -o " << fn_ref_out << " -opsize " << this->pixel_size << " -obox " << _ori_size;
+
+			std::cout << "Running --> " << command.str() << std::endl;
+			system(command.str().c_str());
+			//-------------------------------------------------------
+			//system("bash -l -c \"echo $PATH\"");
+
+			img.read(fn_ref_out);
 			img().setXmippOrigin();
 			ref_dim = img().getDim();
 			if (ori_size != XSIZE(img()) || ori_size != YSIZE(img()))
