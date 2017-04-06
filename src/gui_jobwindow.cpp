@@ -539,7 +539,7 @@ bool RelionJobWindow::prepareFinalCommand(std::string &outputname, std::vector<s
 		}
 	}
 
-	std::cout << final_command << std::endl;
+	//std::cout << final_command << std::endl;
 
  	//char * my_warn = getenv ("RELION_WARNING_LOCAL_MPI");
 	//int my_nr_warn = (my_warn == NULL) ? DEFAULTWARNINGLOCALMPI : textToInteger(my_warn);
@@ -954,7 +954,7 @@ void UnblurTbzJobWindow::toggle_new_continue(bool _is_continue)
 }
 
 bool UnblurTbzJobWindow::getCommands(std::string &outputname, std::vector<std::string> &commands,
-		std::string &final_command, bool do_makedir, int job_counter)
+									 std::string &final_command, bool do_makedir, int job_counter)
 {
 	commands.clear();
 	initialisePipeline(outputname, "UnblurTBZ", job_counter);
@@ -3822,8 +3822,38 @@ void Class3DJobWindow::toggle_new_continue(bool _is_continue)
 
 }
 
+/*static FileName mrc_convert(FileName fn_ref, int _ori_size, float pixel_size){
+	//----------- Run mrc conversion first -----------------
+	// create a temp reference filename
+	std::ostringstream stringStream;
+	stringStream << "_box_" << _ori_size << "_psize_" << pixel_size;
+	stringStream.precision(4);
+	FileName fn_ref_out(fn_ref.insertBeforeExtension(stringStream.str()));
+	//  construct mrc conversion python-based command
+	std::ostringstream command;
+	command.precision(6);
+	command << "relion_mrc_resize.py " << " -i " << fn_ref << " -o " << fn_ref_out << " -opsize " << pixel_size << " -obox " << _ori_size;
+	// Run mrc conversion command
+	std::cout << "Running mrc conversion --> " << command.str() << std::endl;
+	system(command.str().c_str());
+	//-------------------------------------------------------
+	return fn_ref_out;
+}*/
+
+//!!
+static void appendModelResizeCommand(std::vector<std::string> &commands,std::string modelin,std::string &modelout,std::string star){
+	// create a temp reference filename
+	FileName fn_ref(modelin);
+	std::string fn_ref_out = fn_ref.insertBeforeExtension("_rescaled");
+	std::string command="`which relion_mrc_resize_mpi.py`";
+	command += " --ref_star " + star;
+	command += " --model_in " + modelin;
+	command += " --model_out " + fn_ref_out;
+	commands.push_back(command);
+}
+
 bool Class3DJobWindow::getCommands(std::string &outputname, std::vector<std::string> &commands,
-		std::string &final_command, bool do_makedir, int job_counter)
+								   std::string &final_command, bool do_makedir, int job_counter)
 {
 
 	commands.clear();
@@ -3873,7 +3903,10 @@ bool Class3DJobWindow::getCommands(std::string &outputname, std::vector<std::str
 				fl_message("ERROR: empty field for reference...");
 				return false;
 			}
-			command += " --ref " + fn_ref.getValue();
+			// also schedule model resize command
+			std::string ref_resized;
+			appendModelResizeCommand(commands,fn_ref.getValue(),ref_resized,fn_img.getValue());
+			command += " --ref " + ref_resized;
 			Node node(fn_ref.getValue(), fn_ref.type);
 			pipelineInputNodes.push_back(node);
 		}
@@ -3881,7 +3914,6 @@ bool Class3DJobWindow::getCommands(std::string &outputname, std::vector<std::str
 			command += " --firstiter_cc";
 		if (ini_high.getValue() > 0.)
 			command += " --ini_high " + floatToString(ini_high.getValue());
-
 	}
 
 	// Always do compute stuff
