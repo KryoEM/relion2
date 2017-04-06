@@ -41,7 +41,7 @@ def __master_iter(comm,status,tasks,task_index,closed_index):
             comm.send(tasks[task_index], dest=source, tag=TAGS.START)
             task_index += 1
         else:
-            tprint("==========>>> Sending EXIT to worker %d <<<==========" % (source))
+            #tprint("==========>>> Sending EXIT to worker %d <<<==========" % (source))
             comm.send(None, dest=source, tag=TAGS.EXIT)  
     if tag == TAGS.CLOSED:
         #tprint("========>>> Worker %d completed %d out of %d tasks <<<========" % (source,done_index+1,ntasks))  
@@ -78,7 +78,7 @@ def scatter_list(get_all_tasks,run_fun,finish_fun):
             if __worker_iter(run_fun,comm,status) == TAGS.EXIT: 
                 break    
             time.sleep(0.1)
-        tprint("WORKER %s,rank %d finished" % (name,rank))
+        #tprint("WORKER %s,rank %d finished" % (name,rank))
                                          
 def verify(out,err,status):
     if not status:

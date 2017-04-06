@@ -4560,7 +4560,9 @@ bool Auto3DJobWindow::getCommands(std::string &outputname, std::vector<std::stri
 				fl_message("ERROR: empty field for input reference...");
 				return false;
 			}
-			command += " --ref " + fn_ref.getValue();
+			std::string ref_resized;
+			appendModelResizeCommand(commands,fn_ref.getValue(),ref_resized,fn_img.getValue());
+			command += " --ref " + ref_resized;
 			Node node(fn_ref.getValue(), fn_ref.type);
 			pipelineInputNodes.push_back(node);
 		}
@@ -4609,13 +4611,15 @@ bool Auto3DJobWindow::getCommands(std::string &outputname, std::vector<std::stri
 	}
 	if (fn_mask.getValue().length() > 0)
 	{
-		command += " --solvent_mask " + fn_mask.getValue();
+		std::string mask_resized;
+		appendModelResizeCommand(commands,fn_ref.getValue(),mask_resized,fn_img.getValue());
+		command += " --solvent_mask " + mask_resized;
 
 		if (do_solvent_fsc.getValue())
 			command += " --solvent_correct_fsc ";
 
 		// TODO: what if this is a continuation run: re-put the mask as an input node? Or only if it changes? Also for 3Dclass
-		Node node(fn_mask.getValue(), fn_mask.type);
+		Node node(mask_resized, fn_mask.type);
 		pipelineInputNodes.push_back(node);
 	}
 
