@@ -3844,11 +3844,11 @@ void Class3DJobWindow::toggle_new_continue(bool _is_continue)
 static void appendModelResizeCommand(std::vector<std::string> &commands,std::string modelin,std::string &modelout,std::string star){
 	// create a temp reference filename
 	FileName fn_ref(modelin);
-	std::string fn_ref_out = fn_ref.insertBeforeExtension("_rescaled");
+	modelout = fn_ref.insertBeforeExtension("_resized");
 	std::string command="`which relion_mrc_resize_mpi.py`";
 	command += " --ref_star " + star;
 	command += " --model_in " + modelin;
-	command += " --model_out " + fn_ref_out;
+	command += " --model_out " + modelout;
 	commands.push_back(command);
 }
 
@@ -3959,8 +3959,10 @@ bool Class3DJobWindow::getCommands(std::string &outputname, std::vector<std::str
 	}
 	if (fn_mask.getValue().length() > 0)
 	{
-		command += " --solvent_mask " + fn_mask.getValue();
-		Node node(fn_mask.getValue(), fn_mask.type);
+		std::string mask_resized;
+		appendModelResizeCommand(commands,fn_mask.getValue(),mask_resized,fn_img.getValue());
+		command += " --solvent_mask " + mask_resized;
+		Node node(mask_resized, fn_mask.type);
 		pipelineInputNodes.push_back(node);
 	}
 
