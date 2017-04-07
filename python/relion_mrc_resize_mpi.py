@@ -61,7 +61,7 @@ def get_all_tasks(model_in):
     # perform only one task
     return (model_in,)
 
-def mpi_run(modelout,star,modelin,do_zero_thresh=False):
+def mpi_run(modelout,star,do_zero_thresh,modelin):
     # handle input map
     ipsize, ibox = getProperties(modelin)
 
