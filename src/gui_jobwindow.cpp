@@ -3841,7 +3841,8 @@ void Class3DJobWindow::toggle_new_continue(bool _is_continue)
 }*/
 
 //!!
-static void appendModelResizeCommand(std::vector<std::string> &commands,std::string modelin,std::string &modelout,std::string star){
+static void appendModelResizeCommand(std::vector<std::string> &commands,std::string modelin,std::string &modelout,
+									 std::string star,bool do_apply_zero_thresh=False){
 	// create a temp reference filename
 	FileName fn_ref(modelin);
 	modelout = fn_ref.insertBeforeExtension("_resized");
@@ -3849,6 +3850,8 @@ static void appendModelResizeCommand(std::vector<std::string> &commands,std::str
 	command += " --ref_star " + star;
 	command += " --model_in " + modelin;
 	command += " --model_out " + modelout;
+	if (do_apply_zero_thresh)
+		command += " --thresh_zero True";
 	commands.push_back(command);
 }
 
@@ -3907,7 +3910,7 @@ bool Class3DJobWindow::getCommands(std::string &outputname, std::vector<std::str
 			std::string ref_resized;
 			appendModelResizeCommand(commands,fn_ref.getValue(),ref_resized,fn_img.getValue());
 			command += " --ref " + ref_resized;
-			Node node(fn_ref.getValue(), fn_ref.type);
+			Node node(ref_resized, fn_ref.type);
 			pipelineInputNodes.push_back(node);
 		}
 		if (!ref_correct_greyscale.getValue() && fn_ref.getValue() != "None") // dont do firstiter_cc when giving None
@@ -3960,7 +3963,7 @@ bool Class3DJobWindow::getCommands(std::string &outputname, std::vector<std::str
 	if (fn_mask.getValue().length() > 0)
 	{
 		std::string mask_resized;
-		appendModelResizeCommand(commands,fn_mask.getValue(),mask_resized,fn_img.getValue());
+		appendModelResizeCommand(commands,fn_mask.getValue(),mask_resized,fn_img.getValue(),true);
 		command += " --solvent_mask " + mask_resized;
 		Node node(mask_resized, fn_mask.type);
 		pipelineInputNodes.push_back(node);
@@ -4563,7 +4566,7 @@ bool Auto3DJobWindow::getCommands(std::string &outputname, std::vector<std::stri
 			std::string ref_resized;
 			appendModelResizeCommand(commands,fn_ref.getValue(),ref_resized,fn_img.getValue());
 			command += " --ref " + ref_resized;
-			Node node(fn_ref.getValue(), fn_ref.type);
+			Node node(ref_resized, fn_ref.type);
 			pipelineInputNodes.push_back(node);
 		}
 		if (!ref_correct_greyscale.getValue() && fn_ref.getValue() != "None") // dont do firstiter_cc when giving None
@@ -4612,7 +4615,8 @@ bool Auto3DJobWindow::getCommands(std::string &outputname, std::vector<std::stri
 	if (fn_mask.getValue().length() > 0)
 	{
 		std::string mask_resized;
-		appendModelResizeCommand(commands,fn_ref.getValue(),mask_resized,fn_img.getValue());
+		appendModelResizeCommand(commands,fn_mask.getValue(),mask_resized,fn_img.getValue(),True);
+		// use the resized mask for processing
 		command += " --solvent_mask " + mask_resized;
 
 		if (do_solvent_fsc.getValue())

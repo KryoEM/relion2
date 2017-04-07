@@ -34,6 +34,10 @@ def rescale(mrc_path, pix, new_pix, out=None):
 
 	print subprocess.check_output(cmd)
 
+def thresh_below(mrc_path,th=0.0):
+	cmd = ['relion_image_handler', '--i', mrc_path, '--threshold_below', str(th)]
+	print subprocess.check_output(cmd)
+
 def resize(mrc_path, size, out=None):
 	cmd = ['relion_image_handler', '--i', mrc_path, '--new_box', str(size)]
 	if out:
@@ -57,7 +61,7 @@ def get_all_tasks(model_in):
     # perform only one task
     return (model_in,)
 
-def mpi_run(modelout,star,modelin):
+def mpi_run(modelout,star,modelin,do_zero_thresh=False):
     # handle input map
     ipsize, ibox = getProperties(modelin)
 
@@ -105,6 +109,10 @@ def mpi_run(modelout,star,modelin):
     print "Resizing map to from %s to %s box size" % (ibox[0],obox[0])
     resize(modelout, obox[0])
 
+    if do_zero_thresh:
+        print 'Applying zeros threshold from below in the resulting model'
+        thresh_below(modelout,0.0)
+
     # change map name to user-specified destination
     # shell(['mv', working_mrc, out_path])
     #out, err, status = sysrun('mv %s %s' % (working_mrc, out_path))
@@ -124,6 +132,7 @@ def parse_args():
 	parser.add_argument('-i','--model_in', type=str, required=True, help="Input mrc to rescale and resize. Required.")
 	parser.add_argument('-o','--model_out', type=str, required=True, help="The output filename.")
 	parser.add_argument('-r','--ref_star', type=str, required=True, help="The input mrc will be altered to match the dimensions of this reference. Must be a .star file listing particle stacks. Required.")
+	parser.add_argument('-t','--thresh_zero', type=bool, required=False, default=False, help="Flag whether to apply zero threshold to all negative values.")
 	return parser.parse_args()
 
 
@@ -132,10 +141,10 @@ if __name__ == '__main__':
     args = parse_args()
 
     # test without mpi
-    # mpi_run(args.model_out, args.ref_star, args.model_in)
+    #mpi_run(args.model_out, args.ref_star, args.model_in, do_zero_thresh=True)
 
     mpi.scatter_list(partial(get_all_tasks,args.model_in),
-                     partial(mpi_run,args.model_out,args.ref_star),
+                     partial(mpi_run,args.model_out,args.ref_star,args.thresh_zero),
                      mpi_finish)
 
 
