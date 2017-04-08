@@ -67,7 +67,7 @@ def scatter_list(get_all_tasks,run_fun,finish_fun):
         tprint('MPI - %d ranks, tot tasks %d' % (size,len(tasks)))
         while closed_index < size-1:
             time.sleep(0.1)
-            task_index,closed_index = __master_iter(comm,status,tasks,task_index,closed_index)   
+            task_index,closed_index = __master_iter(comm,status,tasks,task_index,closed_index)
         # finilize run
         finish_fun(tasks)            
         tprint("MASTER %s,rank %d finished processing %d tasks" % (name,rank,len(tasks)))

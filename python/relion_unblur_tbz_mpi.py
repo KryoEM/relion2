@@ -28,7 +28,8 @@ SCRATCH_DIR     = 'Unblur'
 MOVIE_DIR       = 'Movies'
 # wildcard for gains filename
 GAINS_KEY       = 'Gain Ref'
-  
+MOVIE_KEY       = '_rlnTbzMovieName'
+
 ####### FUNCTIONS ####################################
 def tbz2mrc_name(ftbz):
     mname   = fn.file_only(ftbz)    
@@ -188,14 +189,14 @@ def unblurmicro(unblurexe,sumexe,nth,ftbz,dstmdir,do_aligned_movies,
     
 def get_all_tasks(dstmdir,starfile):
     '''Run by master rank 0 to initialize the processing'''
-    key  = '_rlnTbzMovieName'
     # directory for micrographs
-    fn.mkdir_assure(dstmdir)   
+    fn.mkdir_assure(dstmdir)
     # read all tbz files from star file
-    tbzs      = star.getlist(starfile,key)
+    tbzs      = star.getlist(starfile,MOVIE_KEY)
     newtbzs   = fn.list_minus_dir(tbzs,join(dstmdir,MOVIE_DIR),DIFF_SUFF)
     if len(newtbzs) == 0:
-        raise(IOError('No new micrographs found in %s!' % starfile))
+        #raise(IOError('No new micrographs found in %s!' % starfile))
+        print('No new micrographs found in %s!' % starfile)
     else:
         print('Found %d new files to process, tot files %d' % (len(newtbzs),len(tbzs)))
     return newtbzs
@@ -220,34 +221,54 @@ def mpi_run(dstdir,unblurexe,sumexe,nth,do_aligned_movies,dodose,dosummovie,
     # remove uncompressed micro  
     mrcname = tbz2mrc_name(tbz)
     tprint('Removing original/uncorrected movie %s' % mrcname)
-    mpi.verify(*sysrun('rm %s' % mrcname))        
+    mpi.verify(*sysrun('rm %s' % mrcname))
           
-def mpi_finish(dstdir,do_aligned_movies,tbzs):
+def mpi_finish(dstdir,starfile,do_aligned_movies,not_used_list):
     ''' Run by master rank 0 to finilize mpi processing '''
     # construct star files with resulting micrograph lists    
-    dstmdir = join(dstdir,MOVIE_DIR)       
+    dstmdir = join(dstdir,MOVIE_DIR)
+    # obtain all movies in the list1
+    tbzs    = star.getlist(starfile,MOVIE_KEY)
     tprint("Saving star files pointing to %d processed results in %s" % (len(tbzs),dstdir))     
     cmd = "relion_star_loopheader 'rlnMicrographName #1' > %saverage_micrographs.star \n \
           ls %s/*%s >> %saverage_micrographs.star" % (dstdir,dstmdir,AVGSUFF,dstdir)
     mpi.verify(*sysrun(cmd)) 
     if do_aligned_movies:
-        cmd = "relion_star_loopheader 'rlnMicrographName #1 \n rlnMicrographMovieName #2' > %saligned_movies.star \n \
-                ls %s/*%s >> %saligned_movies.star" % (dstdir,dstmdir,ALNSUFF,dstdir)
-        mpi.verify(*sysrun(cmd)) 
+        cmd = "relion_star_loopheader 'rlnMicrographName #1' 'rlnMicrographMovieName #2' > %saligned_movies_data.star" % (dstdir,)
+        mpi.verify(*sysrun(cmd))
+        avg_names  = glob.glob('%s/*%s' % (dstmdir,AVGSUFF))
+        algn_names = glob.glob('%s/*%s' % (dstmdir,ALNSUFF))
+        all_names  = zip(*(avg_names,algn_names))
+        with open('%saligned_movies_data.star' % dstdir, 'a', ) as star_file:
+            for line in all_names:
+                star_file.write(' '.join(line)+'\n')
+        #cmd = "ls %s/*%s >> %saligned_movies_data.star" % (dstmdir,ALNSUFF,dstdir)
+        #mpi.verify(*sysrun(cmd))
 
 def main_mpi(dstdir,starfile,unblurexe,sumexe,nth,do_aligned_movies,dodose,dosummovie,
              dose_per_frame,vol,pre_exp,first_frame,last_frame):
+
     if dosummovie:
-        assert(last_frame >= first_frame)        
-    # init scratch for each slave
-    scratch.init('/scratch')    
+        assert(last_frame >= first_frame)
+
+    # init scratch
+    scratch.init('/scratch')
+
+    # tbzgroup = get_all_tasks(dstdir,starfile)
+    # if len(tbzgroup) > 0:
+    #     mpi_run(dstdir,unblurexe,sumexe,nth,do_aligned_movies,dodose,dosummovie,
+    #             dose_per_frame,vol,pre_exp,first_frame,last_frame,tbzgroup[0])
+    # mpi_finish(dstdir, starfile, do_aligned_movies, [])
+
     mpi.scatter_list(partial(get_all_tasks,dstdir,starfile),
                      partial(mpi_run,dstdir,unblurexe,sumexe,nth,do_aligned_movies,dodose,dosummovie,
                              dose_per_frame,vol,pre_exp,first_frame,last_frame),
-                     partial(mpi_finish,dstdir,do_aligned_movies))     
+                     partial(mpi_finish,dstdir,starfile,do_aligned_movies))
+
+
     # clean scratch
-    scratch.clean()                        
-    
+    scratch.clean()
+
 def get_parser():
     parser = argparse.ArgumentParser(fromfile_prefix_chars='@',
                                      description='Running unblur on tbz-compressed micrographs via MPI.',
@@ -309,12 +330,14 @@ if __name__ == "__main__":
     last_frame          = kwargs['last_frame_sum']    
     dosummovie          = last_frame != 0 or first_frame !=0
     # call main function with all params
-    #tbzgroup = get_all_tasks(dstdir,starfile)
+
 
     main_mpi(dstdir, starfile, unblurexe, sumexe, nth, do_aligned_movies, dodose, dosummovie,
              dose_per_frame, vol, pre_exp, first_frame, last_frame)
+
+
     #tprint("Align status %d" % do_aligned_movies)    
-else:
+# else:
 #     #%% ----------------- TESTS -----------------------
 #     starfile  = '/jasper/temp/betagal1/Import/job001/movies.star'
 #     dstdir    = '/jasper/temp/betagal1/MotionCorr/job001/'
@@ -337,15 +360,13 @@ else:
 #     #%%
 #     scratch.init('/scratch')
 
-    tbzgroup = get_all_tasks(dstdir,starfile)
+    # tbzgroup = get_all_tasks(dstdir,starfile)
     #tbzgroup = [tbzgroup[0],tbzgroup[1]]
-    tbzgroup = [tbzgroup[0]]
+    # tbzgroup = [tbzgroup[0]]
     
     
     #gain2mrc('/jasper/data/Livlab/projects_nih/BGal/BetaGal_PETG_20141217_2/')
     # --------------------------------------------------
-    mpi_run(dstdir,unblurexe,sumexe,nth,do_aligned_movies,dodose,dosummovie,
-            dose_per_frame,vol,pre_exp,first_frame,last_frame,tbzgroup[0])
 #    partial(mpi_finish,dstdir,do_aligned_movies)(tbzgroup)
 
     
