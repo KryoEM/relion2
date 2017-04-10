@@ -1356,7 +1356,7 @@ CtffindJobWindow::CtffindJobWindow() : RelionJobWindow(5, HAS_MPI, HAS_NOT_THREA
 
 
 	tab2->begin();
-	tab2->label("Microscopy");
+	tab2->label("Common");
 	resetHeight();
 
 	cs.place(current_y, "Spherical aberration (mm):", 2, 0, 8, 0.1, "Spherical aberration of the microscope used to collect these images (in mm)");
@@ -1648,19 +1648,19 @@ bool CtffindJobWindow::getCommands(std::string &outputname, std::vector<std::str
 	RFLOAT magn = 10000.;
 
 	command += " --i " + input_star_mics.getValue();
-	command += " --o " + outputname;
-	command += " --CS " + floatToString(cs.getValue());
-	command += " --HT " + floatToString(kv.getValue());
-	command += " --AmpCnst " + floatToString(q0.getValue());
-	command += " --XMAG " + floatToString(magn);
-	command += " --DStep " + floatToString(angpix.getValue());
-	command += " --Box " + floatToString(box.getValue());
-	command += " --ResMin " + floatToString(resmin.getValue());
-	command += " --ResMax " + floatToString(resmax.getValue());
-	command += " --dFMin " + floatToString(dfmin.getValue());
-	command += " --dFMax " + floatToString(dfmax.getValue());
-	command += " --FStep " + floatToString(dfstep.getValue());
-	command += " --dAst " + floatToString(dast.getValue());
+    command += " --o " + outputname;
+    command += " --CS " + floatToString(cs.getValue());
+    command += " --HT " + floatToString(kv.getValue());
+    command += " --AmpCnst " + floatToString(q0.getValue());
+    command += " --XMAG " + floatToString(magn);
+    command += " --DStep " + floatToString(angpix.getValue());
+    command += " --Box " + floatToString(box.getValue());
+    command += " --ResMin " + floatToString(resmin.getValue());
+    command += " --ResMax " + floatToString(resmax.getValue());
+    command += " --dFMin " + floatToString(dfmin.getValue());
+    command += " --dFMax " + floatToString(dfmax.getValue());
+    command += " --FStep " + floatToString(dfstep.getValue());
+    command += " --dAst " + floatToString(dast.getValue());
 	if (use_gctf.getValue())
 	{
 		command += " --use_gctf --gctf_exe " + fn_gctf_exe.getValue();
@@ -1673,7 +1673,7 @@ bool CtffindJobWindow::getCommands(std::string &outputname, std::vector<std::str
 		// GPU-allocation
 		command += " --gpu \"" + gpu_ids.getValue() + "\"";
 
-		if ((other_gctf_args.getValue()).length() > 0)
+		if (other_gctf_args.getValue().length() > 0)
 			command += " --extra_gctf_options \" " + other_gctf_args.getValue() + " \"";
 
 	}
@@ -1708,10 +1708,7 @@ bool CtffindJobWindow::getCommands(std::string &outputname, std::vector<std::str
 	commands.push_back(command);
 
 	return prepareFinalCommand(outputname, commands, final_command, do_makedir);
-
 }
-
-
 
 ManualpickJobWindow::ManualpickJobWindow() : RelionJobWindow(3, HAS_NOT_MPI, HAS_NOT_THREAD)
 {
@@ -1760,8 +1757,8 @@ rlnParticleSelectZScore \n rlnClassNumber \n rlnAutopickFigureOfMerit \n rlnAngl
 	fn_color.place(current_y, "STAR file with color label: ", "", "STAR file (*.star)", NULL, "The program will figure out which particles in this STAR file are on the current micrograph and color their circles according to the value in the corresponding column. \
 Particles that are not in this STAR file, but present in the picked coordinates file will be colored green. If this field is left empty, then the color label (e.g. rlnAutopickFigureOfMerit) should be present in the coordinates STAR file.");
 
-	blue_value.place(current_y, "Blue value: ", 0., 0., 4., 0.1, "The value of this entry will be blue. There will be a linear scale from blue to red, according to this value and the one given below.");
-	red_value.place(current_y, "Red value: ", 2., 0., 4., 0.1, "The value of this entry will be red. There will be a linear scale from blue to red, according to this value and the one given above.");
+	blue_value.place(current_y, "Blue value: ", 0.f, 0.f, 4.f, 0.1, "The value of this entry will be blue. There will be a linear scale from blue to red, according to this value and the one given below.");
+	red_value.place(current_y, "Red value: ", 2.f, 0.f, 4.f, 0.1, "The value of this entry will be red. There will be a linear scale from blue to red, according to this value and the one given above.");
 	color_group->end();
 	do_color.cb_menu_i(); // make default active
 
@@ -1979,7 +1976,7 @@ AutopickJobWindow::AutopickJobWindow() : RelionJobWindow(4, HAS_MPI, HAS_NOT_THR
 	tab3->label("autopicking");
 	resetHeight();
 
-	threshold_autopick.place(current_y, "Picking threshold:", 0.05, 0, 1., 0.01, "Use lower thresholds to pick more particles (and more junk probably)");
+	threshold_autopick.place(current_y, "Picking threshold:", 0.05, 0, 1.f, 0.01, "Use lower thresholds to pick more particles (and more junk probably)");
 
 	mindist_autopick.place(current_y, "Minimum inter-particle distance (A):", 100, 0, 1000, 20, "Particles closer together than this distance will be consider to be a single cluster. From each cluster, only one particle will be picked. \
 \n\nThis option takes no effect for picking helical segments. The inter-box distance is calculated with the number of asymmetrical units and the helical rise on 'Helix' tab.");

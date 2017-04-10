@@ -383,6 +383,8 @@ void CtffindRunner::executeGctf(long int imic, std::vector<std::string> &allmicn
 		// Redirect all gctf output
 		command += " >> " + fn_out + "gctf" + integerToString(rank)+".out  2>> " + fn_out + "gctf" + integerToString(rank)+".err";
 
+		std::cout << command << std::endl;
+
 		//std::cerr << " command= " << command << std::endl;
 		int res = system(command.c_str());
 
