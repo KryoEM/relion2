@@ -517,7 +517,7 @@ bool RelionJobWindow::prepareFinalCommand(std::string &outputname, std::vector<s
 			if ((has_mpi && nr_mpi.getValue() > 1)  &&
 				(commands[icom]).find("_mpi") != std::string::npos &&
 				(commands[icom]).find("relion_") != std::string::npos) {
-				one_command = "/usr/bin/time -p -o run.out -a mpirun -n " + floatToString(nr_mpi.getValue()) + " ";
+				one_command = "/usr/bin/time -p -o " + outputname + "run.out -a mpirun -n " + floatToString(nr_mpi.getValue()) + " ";
 				if (!mpi_hostfile.getValue().empty())
 					one_command += " --hostfile " + mpi_hostfile.getValue() + " ";
 				// add bash -l option
