@@ -608,6 +608,7 @@ void MlModel::readImages(FileName fn_ref, int _ori_size, Experiment &_mydata,
 			FOR_ALL_OBJECTS_IN_METADATA_TABLE(MDref)
 			{
 				MDref.getValue(EMDL_MLMODEL_REF_IMAGE, fn_tmp);
+				//FileName fn_tmp_out(mrc_convert(fn_tmp, ori_size, this->pixel_size));
 				img.read(fn_tmp);
 				ref_dim = img().getDim();
 				if (ori_size != XSIZE(img()) || ori_size != YSIZE(img()))
@@ -622,6 +623,7 @@ void MlModel::readImages(FileName fn_ref, int _ori_size, Experiment &_mydata,
 		// For a single image, read this image as reference and set it in all nr_classes Irefs
 		else
 		{
+//FileName fn_ref_out(mrc_convert(fn_ref, ori_size, this->pixel_size));
 			img.read(fn_ref);
 			img().setXmippOrigin();
 			ref_dim = img().getDim();

@@ -517,7 +517,7 @@ bool RelionJobWindow::prepareFinalCommand(std::string &outputname, std::vector<s
 			if ((has_mpi && nr_mpi.getValue() > 1)  &&
 				(commands[icom]).find("_mpi") != std::string::npos &&
 				(commands[icom]).find("relion_") != std::string::npos) {
-				one_command = "/usr/bin/time -p -o run.out -a mpirun -n " + floatToString(nr_mpi.getValue()) + " ";
+				one_command = "/usr/bin/time -p -o " + outputname + "run.out -a mpirun -n " + floatToString(nr_mpi.getValue()) + " ";
 				if (!mpi_hostfile.getValue().empty())
 					one_command += " --hostfile " + mpi_hostfile.getValue() + " ";
 				// add bash -l option
@@ -539,7 +539,7 @@ bool RelionJobWindow::prepareFinalCommand(std::string &outputname, std::vector<s
 		}
 	}
 
-	std::cout << "Running ===>" << final_command << std::endl;
+#	std::cout << "Running ===>" << final_command << std::endl;
 
  	//char * my_warn = getenv ("RELION_WARNING_LOCAL_MPI");
 	//int my_nr_warn = (my_warn == NULL) ? DEFAULTWARNINGLOCALMPI : textToInteger(my_warn);
@@ -954,7 +954,7 @@ void UnblurTbzJobWindow::toggle_new_continue(bool _is_continue)
 }
 
 bool UnblurTbzJobWindow::getCommands(std::string &outputname, std::vector<std::string> &commands,
-		std::string &final_command, bool do_makedir, int job_counter)
+									 std::string &final_command, bool do_makedir, int job_counter)
 {
 	commands.clear();
 	initialisePipeline(outputname, "UnblurTBZ", job_counter);
@@ -3823,8 +3823,41 @@ void Class3DJobWindow::toggle_new_continue(bool _is_continue)
 
 }
 
+/*static FileName mrc_convert(FileName fn_ref, int _ori_size, float pixel_size){
+	//----------- Run mrc conversion first -----------------
+	// create a temp reference filename
+	std::ostringstream stringStream;
+	stringStream << "_box_" << _ori_size << "_psize_" << pixel_size;
+	stringStream.precision(4);
+	FileName fn_ref_out(fn_ref.insertBeforeExtension(stringStream.str()));
+	//  construct mrc conversion python-based command
+	std::ostringstream command;
+	command.precision(6);
+	command << "relion_mrc_resize.py " << " -i " << fn_ref << " -o " << fn_ref_out << " -opsize " << pixel_size << " -obox " << _ori_size;
+	// Run mrc conversion command
+	std::cout << "Running mrc conversion --> " << command.str() << std::endl;
+	system(command.str().c_str());
+	//-------------------------------------------------------
+	return fn_ref_out;
+}*/
+
+//!!
+static void appendModelResizeCommand(std::vector<std::string> &commands,std::string modelin,std::string &modelout,
+									 std::string star,bool do_apply_zero_thresh=False){
+	// create a temp reference filename
+	FileName fn_ref(modelin);
+	modelout = fn_ref.insertBeforeExtension("_resized");
+	std::string command="`which relion_mrc_resize_mpi.py`";
+	command += " --ref_star " + star;
+	command += " --model_in " + modelin;
+	command += " --model_out " + modelout;
+	if (do_apply_zero_thresh)
+		command += " --thresh_zero True";
+	commands.push_back(command);
+}
+
 bool Class3DJobWindow::getCommands(std::string &outputname, std::vector<std::string> &commands,
-		std::string &final_command, bool do_makedir, int job_counter)
+								   std::string &final_command, bool do_makedir, int job_counter)
 {
 
 	commands.clear();
@@ -3874,15 +3907,17 @@ bool Class3DJobWindow::getCommands(std::string &outputname, std::vector<std::str
 				fl_message("ERROR: empty field for reference...");
 				return false;
 			}
-			command += " --ref " + fn_ref.getValue();
-			Node node(fn_ref.getValue(), fn_ref.type);
+			// also schedule model resize command
+			std::string ref_resized;
+			appendModelResizeCommand(commands,fn_ref.getValue(),ref_resized,fn_img.getValue());
+			command += " --ref " + ref_resized;
+			Node node(ref_resized, fn_ref.type);
 			pipelineInputNodes.push_back(node);
 		}
 		if (!ref_correct_greyscale.getValue() && fn_ref.getValue() != "None") // dont do firstiter_cc when giving None
 			command += " --firstiter_cc";
 		if (ini_high.getValue() > 0.)
 			command += " --ini_high " + floatToString(ini_high.getValue());
-
 	}
 
 	// Always do compute stuff
@@ -3928,8 +3963,10 @@ bool Class3DJobWindow::getCommands(std::string &outputname, std::vector<std::str
 	}
 	if (fn_mask.getValue().length() > 0)
 	{
-		command += " --solvent_mask " + fn_mask.getValue();
-		Node node(fn_mask.getValue(), fn_mask.type);
+		std::string mask_resized;
+		appendModelResizeCommand(commands,fn_mask.getValue(),mask_resized,fn_img.getValue(),true);
+		command += " --solvent_mask " + mask_resized;
+		Node node(mask_resized, fn_mask.type);
 		pipelineInputNodes.push_back(node);
 	}
 
@@ -4527,8 +4564,10 @@ bool Auto3DJobWindow::getCommands(std::string &outputname, std::vector<std::stri
 				fl_message("ERROR: empty field for input reference...");
 				return false;
 			}
-			command += " --ref " + fn_ref.getValue();
-			Node node(fn_ref.getValue(), fn_ref.type);
+			std::string ref_resized;
+			appendModelResizeCommand(commands,fn_ref.getValue(),ref_resized,fn_img.getValue());
+			command += " --ref " + ref_resized;
+			Node node(ref_resized, fn_ref.type);
 			pipelineInputNodes.push_back(node);
 		}
 		if (!ref_correct_greyscale.getValue() && fn_ref.getValue() != "None") // dont do firstiter_cc when giving None
@@ -4576,13 +4615,16 @@ bool Auto3DJobWindow::getCommands(std::string &outputname, std::vector<std::stri
 	}
 	if (fn_mask.getValue().length() > 0)
 	{
-		command += " --solvent_mask " + fn_mask.getValue();
+		std::string mask_resized;
+		appendModelResizeCommand(commands,fn_mask.getValue(),mask_resized,fn_img.getValue(),True);
+		// use the resized mask for processing
+		command += " --solvent_mask " + mask_resized;
 
 		if (do_solvent_fsc.getValue())
 			command += " --solvent_correct_fsc ";
 
 		// TODO: what if this is a continuation run: re-put the mask as an input node? Or only if it changes? Also for 3Dclass
-		Node node(fn_mask.getValue(), fn_mask.type);
+		Node node(mask_resized, fn_mask.type);
 		pipelineInputNodes.push_back(node);
 	}
 
