@@ -288,10 +288,10 @@ RelionMainWindow::RelionMainWindow(int w, int h, const char* title, FileName fn_
             }
         } else {
             std::cout
-                    << "Warning: Cannot find default hostfile. A blank hostfile has been created in the project directory for further editing."
+					<< "\nWarning: Cannot find default hostfile. A blank hostfile has been created in the project directory for further editing."
                             " RELION will use the system-wide hostfile, but this can be changed by editing the blank hostfile that was just created and specifying this hostfile in the 'Running' tab."
                             " For more information, see help dialog for 'MPI hostfile' in the 'Running' tab."
-                    << std::endl;
+					<< std::endl;
             touch(hf_name);
         }
     }

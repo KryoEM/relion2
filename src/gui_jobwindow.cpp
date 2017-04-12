@@ -539,7 +539,7 @@ bool RelionJobWindow::prepareFinalCommand(std::string &outputname, std::vector<s
 		}
 	}
 
-#	std::cout << "Running ===>" << final_command << std::endl;
+//	std::cout << "Running ===>" << final_command << std::endl;
 
  	//char * my_warn = getenv ("RELION_WARNING_LOCAL_MPI");
 	//int my_nr_warn = (my_warn == NULL) ? DEFAULTWARNINGLOCALMPI : textToInteger(my_warn);
@@ -3842,8 +3842,8 @@ void Class3DJobWindow::toggle_new_continue(bool _is_continue)
 }*/
 
 //!!
-static void appendModelResizeCommand(std::vector<std::string> &commands,std::string modelin,std::string &modelout,
-									 std::string star,bool do_apply_zero_thresh=False){
+static void appendModelResizeCommand(std::vector<std::string> &commands, std::string modelin, std::string &modelout,
+                                     std::string star, bool do_apply_zero_thresh = false) {
 	// create a temp reference filename
 	FileName fn_ref(modelin);
 	modelout = fn_ref.insertBeforeExtension("_resized");
@@ -4616,7 +4616,7 @@ bool Auto3DJobWindow::getCommands(std::string &outputname, std::vector<std::stri
 	if (fn_mask.getValue().length() > 0)
 	{
 		std::string mask_resized;
-		appendModelResizeCommand(commands,fn_mask.getValue(),mask_resized,fn_img.getValue(),True);
+        appendModelResizeCommand(commands, fn_mask.getValue(), mask_resized, fn_img.getValue(), true);
 		// use the resized mask for processing
 		command += " --solvent_mask " + mask_resized;
 

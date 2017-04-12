@@ -270,7 +270,7 @@ endif()
 ADD_SUBDIRECTORY(src/apps)
 
 # -----------------------------------------------------------------------------TESTS--
-# Include testing flag(s) as precomiler 
+# Include testing flag(s) as precompiler
 # definitions and include test directives
 enable_testing()
 include(${CMAKE_SOURCE_DIR}/tests/RelionTests.cmake)
