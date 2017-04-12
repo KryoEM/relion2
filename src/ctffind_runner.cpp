@@ -77,6 +77,8 @@ void CtffindRunner::read(int argc, char **argv, int rank)
 	do_validation = parser.checkOption("--do_validation", "Use validation inside Gctf to analyse quality of the fit?");
 	additional_gctf_options = parser.getOption("--extra_gctf_options", "Additional options for Gctf", "");
 	gpu_ids = parser.getOption("--gpu", "Device ids for each MPI-thread, e.g 0:1:2:3","");
+    do_phase_flip = parser.checkOption("--do_phase_flip",
+                                       "Save an additional phase-flipped micrograph in the job directory");
 
 	// Initialise verb for non-parallel execution
 	verb = 1;
@@ -363,6 +365,9 @@ void CtffindRunner::executeGctf(long int imic, std::vector<std::string> &allmicn
 		if (do_validation)
 			command += " --do_validation ";
 
+        if (do_phase_flip)
+            command += " --do_phase_flip ";
+
 		for (size_t i = 0; i<allmicnames.size(); i++)
 			command += " " + allmicnames[i];
 
@@ -395,8 +400,6 @@ void CtffindRunner::executeGctf(long int imic, std::vector<std::string> &allmicn
 		// Re-set the allmicnames vector
 		allmicnames.clear();
 	}
-
-
 }
 
 void CtffindRunner::executeCtffind3(long int imic)

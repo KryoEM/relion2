@@ -15,7 +15,7 @@
  *
  * This complete copyright notice must be included in any revised version of the
  * source code. Additional authorship citations may be added, but existing
- * author citations must be preserved.
+ * author ctations must be preserved.
  ***************************************************************************/
 #include "src/gui_jobwindow.h"
 
@@ -182,7 +182,7 @@ void RelionJobWindow::setupRunTab()
 
 	if (has_mpi)
 	{
-        const char *hostfile_default = getenv("RELION_DEFAULT_HOSTFILE") != NULL ? ".default_hostfile" : "";
+        const char *hostfile_default = "default_hostfile";
 		nr_mpi.place(current_y, "Number of MPI procs:", 1, 1, 64, 1, "Number of MPI nodes to use in parallel. When set to 1, MPI will not be used.");
         mpi_hostfile.place(current_y, "MPI hostfile:", hostfile_default, "MPI hostfiles (*.*)", NULL,
                            "The file that mpirun will use to figure out how to allocate jobs to nodes. If you leave this blank, the system-wide default hostfile (usually located at /etc/openmpi/openmpi-default-hostfile for openmpi) will be used instead.");
@@ -1467,6 +1467,8 @@ CtffindJobWindow::CtffindJobWindow() : RelionJobWindow(5, HAS_MPI, HAS_NOT_THREA
 \n If set to No, all parameters on the CTFFIND tab will be passed to Gctf.");
 
 	do_EPA.place(current_y, "Perform equi-phase averaging?", false, "If set to Yes, equi-phase averaging is used in the defocus refinement, otherwise basic rotational averaging will be performed.");
+    do_phase_flip.place(current_y, "Do phase flipping?", false,
+                        "If set to Yes, phase flipping will be performed. This will save a phase-flipped micrograph in the job directory.");
 
 	// Add a little spacer
 	current_y += STEPY/2;
@@ -1669,6 +1671,8 @@ bool CtffindJobWindow::getCommands(std::string &outputname, std::vector<std::str
 			command += " --ignore_ctffind_params";
 		if (do_EPA.getValue())
 			command += " --EPA";
+        if (do_phase_flip.getValue())
+            command += " --do_phase_flip";
 
 		// GPU-allocation
 		command += " --gpu \"" + gpu_ids.getValue() + "\"";

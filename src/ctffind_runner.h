@@ -83,6 +83,9 @@ public:
 	// When using Gctf, use equi-phase averaging?
 	bool do_EPA;
 
+    // Do phase flipping?
+    bool do_phase_flip;
+
 	// Additional gctf command line options
 	std::string additional_gctf_options;
 
