@@ -344,8 +344,10 @@ bool RelionJobWindow::openReadFile(std::string fn, std::ifstream &fh)
 
 void RelionJobWindow::closeWriteFile(std::ofstream& fh, std::string fn)
 {
-	if (has_mpi)
-		nr_mpi.writeValue(fh);
+    if (has_mpi) {
+        nr_mpi.writeValue(fh);
+        mpi_hostfile.writeValue(fh);
+    }
 	if (has_thread)
 		nr_threads.writeValue(fh);
 	do_queue.writeValue(fh);
@@ -367,8 +369,10 @@ void RelionJobWindow::closeWriteFile(std::ofstream& fh, std::string fn)
 
 void RelionJobWindow::closeReadFile(std::ifstream& fh)
 {
-	if (has_mpi)
-		nr_mpi.readValue(fh);
+    if (has_mpi) {
+        nr_mpi.readValue(fh);
+        mpi_hostfile.readValue(fh);
+    }
 	if (has_thread)
 		nr_threads.readValue(fh);
 	do_queue.readValue(fh);
