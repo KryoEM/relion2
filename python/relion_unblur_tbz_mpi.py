@@ -72,8 +72,10 @@ def tbz2mrc(srcdir,tbzname,dstext,**kwargs):
     sname    = join(sdir,mname)    
     dstmrc   = sname + dstext
     fn.mkdir_assure(untbzdir)        
-    untbz(tbzname,untbzdir,**kwargs)  
-    root,srcext = splitext(glob.glob(join(untbzdir, '%s*0001.*' % mname))[0])
+    untbz(tbzname,untbzdir,**kwargs)
+
+
+    root,srcext = splitext(glob.glob(join(untbzdir, '%s*001.*' % mname))[0])
     #print ' Source extension %s ' % srcext
     
     gainmrc = gain2mrc(srcdir)    
