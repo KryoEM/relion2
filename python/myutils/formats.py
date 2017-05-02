@@ -35,8 +35,9 @@ def untbz(tbzfile,untbzdir,**kwargs):
 def dm4tomrc(fsrc,fdst):   
     cmd     = "dm2mrc %s %s " % (fsrc, fdst)  
     out,err,status = sysrun(cmd) 
-    #print out+err
-    assert(status)
+    if not status:
+        print out+err
+        assert(status)
     
 def stackmrcs(fsrc,fdst):
     cmd     = "newstack %s %s " % (fsrc, fdst)  
