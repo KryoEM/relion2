@@ -876,6 +876,7 @@ void RelionMainWindow::loadJobFromPipeline()
 		is_main_continue = true;
 	else
 		is_main_continue = false;
+//    is_main_continue = pipeline.processList[current_job].status != PROC_SCHEDULED_NEW;
 
 	cb_toggle_continue_i();
 
