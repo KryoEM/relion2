@@ -280,4 +280,3 @@ include(${CMAKE_SOURCE_DIR}/tests/RelionTests.cmake)
 #foreach (_variableName ${_variableNames})
 #    message(STATUS "${_variableName}=${${_variableName}}")
 #endforeach()
-
