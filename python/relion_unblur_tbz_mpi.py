@@ -238,7 +238,7 @@ def mpi_run(dstdir,unblurexe,sumexe,nth,do_aligned_movies,dodose,dosummovie,
 def mpi_finish(dstdir,starfile,do_aligned_movies,not_used_list):
     ''' Run by master rank 0 to finilize mpi processing '''
     # construct star files with resulting micrograph lists
-    dstdir  = join(os.getcwd(),dstdir)
+    #dstdir  = join(os.getcwd(),dstdir)
     dstmdir = join(dstdir,MOVIE_DIR)
     # obtain all movies in the list1
     tbzs    = star.getlist(starfile,MOVIE_KEY)
