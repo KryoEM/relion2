@@ -515,7 +515,7 @@ bool RelionJobWindow::prepareFinalCommand(std::string &outputname, std::vector<s
 		for (size_t icom = 0; icom < commands.size(); icom++)
 		{
 
-			std::string bashcommand = "bash -l -c \"" + commands[icom] + "\"";
+			std::string bashcommand = "bash -l -c \'" + commands[icom] + "\'";
 
 			// Is this a relion mpi program?
 			if ((has_mpi && nr_mpi.getValue() > 1)  &&
