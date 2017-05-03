@@ -178,6 +178,11 @@ def unblurmicro(unblurexe,sumexe,nth,ftbz,dstmdir,do_aligned_movies,
     mrcname = tbz2mrc_name(ftbz) 
     # obtain number of frames in the movie
     nframes = mrc.shape(mrcname)[0]
+
+    # correct frame limits if needed
+    first_frame = max(1,first_frame)
+    last_frame  = min(nframes,last_frame)
+
     angpix  = mrc.psize(mrcname)    
     # generate unblur csh script
     tprint("Running Unblur on %s" % mrcname)                
@@ -186,13 +191,6 @@ def unblurmicro(unblurexe,sumexe,nth,ftbz,dstmdir,do_aligned_movies,
                                      dodose,dose_per_frame,vol,pre_exp)    
     # call unblur script
     mpi.verify(*sysrun('csh %s' % unblur_csh))
-    # rename aligned movies
-    # if do_aligned_movies:
-    #     # add .mrcs to aligned movie
-    #     mname   = fn.file_only(mrcname)
-    #     mrcaln  = join(dstmdir, mname + ALNSUFF)
-    #     mrcsaln = join(dstmdir, mname + ALNSUFF+'s')
-    #     mpi.verify(*sysrun('ln -s %s %s' % (mrcaln,mrcsaln)))
     if dosummovie:
         # generate summovoe script
         tprint("Running Summovie on %s" % mrcname)                        
@@ -366,9 +364,9 @@ if __name__ == "__main__":
              dose_per_frame, vol, pre_exp, first_frame, last_frame)
 
 
-# #     #tprint("Align status %d" % do_aligned_movies)
-# # # else:
-# #     #%% ----------------- TESTS -----------------------
+#     #tprint("Align status %d" % do_aligned_movies)
+# # else:
+#     #%% ----------------- TESTS -----------------------
 #     starfile  = '/jasper/result/PKM2_WT/Import/job001/tbz_movies.star'
 #     starfile  = '/jasper/result/PKM2_WT/Import/job172/tbz_movies.star'
 #     dstdir    = '/jasper/result/PKM2_WT/UnblurTBZ/job177/'
@@ -383,26 +381,29 @@ if __name__ == "__main__":
 #     pre_exp   = 1.0
 #     do_aligned_movies = True
 #     dosummovie = True
-#     first_frame = 3
-#     last_frame = 20
+#     first_frame = 0
+#     last_frame = 38
 #     #%%
-# #
-# #     main_mpi(dstdir, starfile, unblurexe, sumexe, nth, do_aligned_movies, dodose, dosummovie,
-# #              dose_per_frame, vol, pre_exp, first_frame, last_frame)
 #
 #     scratch.init('/scratch')
 #
 #     tbzgroup = get_all_tasks(dstdir,starfile)
 #
+#     partial(mpi_run, dstdir, unblurexe, sumexe, nth, do_aligned_movies, dodose, dosummovie,
+#             dose_per_frame, vol, pre_exp, first_frame, last_frame)(tbzgroup[0])
+
+
+#
+#     main_mpi(dstdir, starfile, unblurexe, sumexe, nth, do_aligned_movies, dodose, dosummovie,
+#              dose_per_frame, vol, pre_exp, first_frame, last_frame)
+
 #     partial(mpi_finish, dstdir, starfile, do_aligned_movies)(tbzgroup)
     # pass
 #     #tbzgroup = [tbzgroup[0],tbzgroup[1]]
 #     #tbzgroup = [tbzgroup[0]]
 #
 #     #partial(get_all_tasks, dstdir, starfile)(tbzgroup)
-#     partial(mpi_run, dstdir, unblurexe, sumexe, nth, do_aligned_movies, dodose, dosummovie,
-#             dose_per_frame, vol, pre_exp, first_frame, last_frame)(tbzgroup[0])
-    
+
     #gain2mrc('/jasper/data/Livlab/projects_nih/BGal/BetaGal_PETG_20141217_2/')
     # --------------------------------------------------
 #    partial(mpi_finish,dstdir,do_aligned_movies)(tbzgroup)
