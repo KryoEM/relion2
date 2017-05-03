@@ -5,13 +5,27 @@ Created on Tue Aug 12 23:02:51 2014
 @author: worker
 """
 
-import os
+import os, errno
 import shutil
 from   myutils.utils import Base,sysrun
 import simplejson
 import errno
 import subprocess
 import glob
+
+def replace_last(source_string, replace_what, replace_with):
+    head, _sep, tail = source_string.rpartition(replace_what)
+    return head + replace_with + tail
+
+def symlink_force(target, link_name):
+    try:
+        os.symlink(target, link_name)
+    except OSError, e:
+        if e.errno == errno.EEXIST:
+            os.remove(link_name)
+            os.symlink(target, link_name)
+        else:
+            raise e
 
 def names2cmd(names):
     cmd = 'printf \"'

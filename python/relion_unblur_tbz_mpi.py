@@ -22,8 +22,8 @@ import glob
 import os
 
 MOVSUFF         = '.mrc'
-AVGSUFF         = '.mrc'
-DIFF_SUFF       = '.mrc'
+AVGSUFF         = '_avg.mrc'
+DIFF_SUFF       = '_avg.mrc'
 ALNSUFF         = '_aligned.mrc'
 SCRATCH_DIR     = 'Unblur'
 MOVIE_DIR       = 'Movies'
@@ -239,7 +239,8 @@ def mpi_run(dstdir,unblurexe,sumexe,nth,do_aligned_movies,dodose,dosummovie,
           
 def mpi_finish(dstdir,starfile,do_aligned_movies,not_used_list):
     ''' Run by master rank 0 to finilize mpi processing '''
-    # construct star files with resulting micrograph lists    
+    # construct star files with resulting micrograph lists
+    dstdir  = join(os.getcwd(),dstdir)
     dstmdir = join(dstdir,MOVIE_DIR)
     # obtain all movies in the list1
     tbzs    = star.getlist(starfile,MOVIE_KEY)
@@ -253,14 +254,21 @@ def mpi_finish(dstdir,starfile,do_aligned_movies,not_used_list):
         avg_names  = glob.glob('%s/*%s' % (dstmdir,AVGSUFF))
         # use .mrcs in the star file
         algn_names = glob.glob('%s/*%s' % (dstmdir,ALNSUFF))
-        # ------ create .mrcs links to all align names ---------
+        # ------ create links to modified names ---------
+        # links with mrcs ending
         algn_names_s = []
         for name in algn_names:
             name_s = name+'s'
-            os.symlink(name,name_s)
+            fn.symlink_force(name,name_s)
             algn_names_s.append(name_s)
+        # links with no avg ending
+        noavg_names  = []
+        for name in avg_names:
+            noavg = fn.replace_last(name,AVGSUFF,'.mrc')
+            fn.symlink_force(name, noavg)
+            noavg_names.append(noavg)
         # ------------------------------------------------------
-        all_names  = zip(*(avg_names,algn_names_s))
+        all_names  = zip(*(noavg_names,algn_names_s))
         with open('%saligned_movies_data.star' % dstdir, 'a', ) as star_file:
             for line in all_names:
                 star_file.write(' '.join(line)+'\n')
@@ -358,9 +366,9 @@ if __name__ == "__main__":
              dose_per_frame, vol, pre_exp, first_frame, last_frame)
 
 
-#     #tprint("Align status %d" % do_aligned_movies)
-# # else:
-#     #%% ----------------- TESTS -----------------------
+# #     #tprint("Align status %d" % do_aligned_movies)
+# # # else:
+# #     #%% ----------------- TESTS -----------------------
 #     starfile  = '/jasper/result/PKM2_WT/Import/job001/tbz_movies.star'
 #     starfile  = '/jasper/result/PKM2_WT/Import/job172/tbz_movies.star'
 #     dstdir    = '/jasper/result/PKM2_WT/UnblurTBZ/job177/'
@@ -387,7 +395,7 @@ if __name__ == "__main__":
 #     tbzgroup = get_all_tasks(dstdir,starfile)
 #
 #     partial(mpi_finish, dstdir, starfile, do_aligned_movies)(tbzgroup)
-#     # pass
+    # pass
 #     #tbzgroup = [tbzgroup[0],tbzgroup[1]]
 #     #tbzgroup = [tbzgroup[0]]
 #
