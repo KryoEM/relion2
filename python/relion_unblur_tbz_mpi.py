@@ -80,7 +80,7 @@ def tbz2mrc(srcdir,tbzname,dstext,**kwargs):
     fn.mkdir_assure(untbzdir)        
     untbz(tbzname,untbzdir,**kwargs)
 
-    root,srcext = splitext(glob.glob(join(untbzdir, '*001.*'))[0])
+    root,srcext = splitext(glob.glob(join(untbzdir, '*.dm4'))[0])
     #print ' Source extension %s ' % srcext
     
     gainmrc = gain2mrc(srcdir)    
