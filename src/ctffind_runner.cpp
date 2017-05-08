@@ -310,6 +310,27 @@ void CtffindRunner::joinCtffindResults()
 	MDctf.write(fn_out+"micrographs_ctf.star");
 	std::cout << " Done! Written out: " << fn_out <<  "micrographs_ctf.star" << std::endl;
 
+	// Phase flipping is only enabled for GCTF, so we can assume GCTF is enabled
+	if (do_phase_flip) {
+        std::cout << "Writing STAR file of phase-flipped micrographs...\n" << std::endl;
+        // Write out the STAR file of the phase-flipped micrographs
+        FileName pf_fn = (std::string) fn_out + "micrographs_pflipped.star";
+
+        // Create the star file and open an output stream
+        system(strcat((char*)"relion_star_loopheader rlnMicrographName > ", pf_fn.c_str())); // Why people use python not C++ ;)
+        std::ofstream pf_starfile(pf_fn, std::ofstream::out);
+
+        // Write our phase-flipped micrograph names to the STAR file
+        for (int mic = 0; mic < fn_micrographs_all.size(); mic++) {
+            FileName pf_mic_name = fn_micrographs_all[mic].without(".mrc") + "_pf.mrc";
+            pf_starfile << pf_mic_name << "\n";
+        }
+
+        // Finally, close the output stream
+        pf_starfile.close();
+        std::cout << "Done writing phase-flipped micrograph STAR file! It is located at " << pf_fn << std::endl;
+	}
+
 	if (do_use_gctf)
 	{
 		FileName fn_gctf_junk = "micrographs_all_gctf";
