@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8.12)
+set(CMAKE_CXX_STANDARD 11)
 set(RELION_CMAKE_MINIMUM_REQUIRED_VERSION "2.8.12")
+
 
 #
 #if(POLICY CMP0048)
@@ -149,15 +151,6 @@ if(CudaForceSTL)
     add_definitions(-DCUDA_FORCESTL)
     message(STATUS "Building cuda files wusing stl-libs for sort, min and max.")
 endif(CudaForceSTL)
-# ----------------------------------------------------------------------CUFFT OR NOT--
-option(CUFFT "CUFFT" OFF)
-if(CUFFT)
-    if (NOT CUDA_FOUND)
-        message(FATAL_ERROR "CUFFT required, but cuda was not found.")
-    endif(NOT CUDA_FOUND)
-    add_definitions(-DUSE_CUFFT)
-    message(STATUS "Using cuda-based fftw libraries and functions")
-endif(CUFFT)
 
 # ------------------------------------------------------------------------GUI OR NOT--
 # Skip FLTK/X11-dependent binaries or not
@@ -235,6 +228,10 @@ endif()
 
 # ----------------------------------------------------------------------COPY SCRIPTS--
 
+if(FORCE_OWN_FFTW)
+    install(DIRECTORY external/fftw/lib/ DESTINATION lib FILES_MATCHING PATTERN "*")
+endif()
+
 list(APPEND RELION_SCRIPT_FILES star_printtable 
                                 star_plottable
                                 star_loopheader
@@ -275,7 +272,7 @@ endif()
 ADD_SUBDIRECTORY(src/apps)
 
 # -----------------------------------------------------------------------------TESTS--
-# Include testing flag(s) as precomiler 
+# Include testing flag(s) as precompiler
 # definitions and include test directives
 enable_testing()
 include(${CMAKE_SOURCE_DIR}/tests/RelionTests.cmake)
@@ -285,4 +282,3 @@ include(${CMAKE_SOURCE_DIR}/tests/RelionTests.cmake)
 #foreach (_variableName ${_variableNames})
 #    message(STATUS "${_variableName}=${${_variableName}}")
 #endforeach()
-

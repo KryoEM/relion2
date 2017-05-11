@@ -944,7 +944,6 @@ long int PipeLineFlowChart::addProcessToUpwardsFlowChart(std::ofstream &fh, Pipe
 	}
 	if (pipeline.processList[new_process].inputNodeList.size() > 1)
 	{
-
 		std::string rightname, leftname;
 		for (int inode = 0; inode < pipeline.processList[new_process].inputNodeList.size(); inode++)
 		{
@@ -1021,6 +1020,10 @@ long int PipeLineFlowChart::addProcessToUpwardsFlowChart(std::ofstream &fh, Pipe
 	        	right_label = "movies";
 	        	break;
 	        }
+                case PROC_UNBLURTBZ: {
+                    is_right = (mynodetype == NODE_TBZMOVIES);
+                    right_label = "tbzmovies";
+                }
 	        case PROC_POLISH:
 	        {
 	        	is_left = (mynodetype == NODE_MASK);

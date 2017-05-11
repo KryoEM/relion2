@@ -324,7 +324,7 @@ public:
 	SliderEntry ctf_win;
 	SliderEntry cs, kv, q0, angpix, dast;
 	SliderEntry box, resmin, resmax, dfmin, dfmax, dfstep;
-	BooleanEntry is_ctffind4, do_movie_thon_rings, do_phaseshift;
+	BooleanEntry is_ctffind4, do_movie_thon_rings, do_phaseshift, do_phase_flip;
 	SliderEntry avg_movie_frames;
 	AnyEntry phase_min, phase_max, phase_step;
 	AnyEntry movie_rootname;

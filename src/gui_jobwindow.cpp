@@ -15,7 +15,7 @@
  *
  * This complete copyright notice must be included in any revised version of the
  * source code. Additional authorship citations may be added, but existing
- * author citations must be preserved.
+ * author ctations must be preserved.
  ***************************************************************************/
 #include "src/gui_jobwindow.h"
 
@@ -182,7 +182,7 @@ void RelionJobWindow::setupRunTab()
 
 	if (has_mpi)
 	{
-        const char *hostfile_default = getenv("RELION_DEFAULT_HOSTFILE") != NULL ? ".default_hostfile" : "";
+        const char *hostfile_default = "default_hostfile";
 		nr_mpi.place(current_y, "Number of MPI procs:", 1, 1, 64, 1, "Number of MPI nodes to use in parallel. When set to 1, MPI will not be used.");
         mpi_hostfile.place(current_y, "MPI hostfile:", hostfile_default, "MPI hostfiles (*.*)", NULL,
                            "The file that mpirun will use to figure out how to allocate jobs to nodes. If you leave this blank, the system-wide default hostfile (usually located at /etc/openmpi/openmpi-default-hostfile for openmpi) will be used instead.");
@@ -344,8 +344,10 @@ bool RelionJobWindow::openReadFile(std::string fn, std::ifstream &fh)
 
 void RelionJobWindow::closeWriteFile(std::ofstream& fh, std::string fn)
 {
-	if (has_mpi)
-		nr_mpi.writeValue(fh);
+    if (has_mpi) {
+        nr_mpi.writeValue(fh);
+        mpi_hostfile.writeValue(fh);
+    }
 	if (has_thread)
 		nr_threads.writeValue(fh);
 	do_queue.writeValue(fh);
@@ -367,8 +369,10 @@ void RelionJobWindow::closeWriteFile(std::ofstream& fh, std::string fn)
 
 void RelionJobWindow::closeReadFile(std::ifstream& fh)
 {
-	if (has_mpi)
-		nr_mpi.readValue(fh);
+    if (has_mpi) {
+        nr_mpi.readValue(fh);
+        mpi_hostfile.readValue(fh);
+    }
 	if (has_thread)
 		nr_threads.readValue(fh);
 	do_queue.readValue(fh);
@@ -511,13 +515,13 @@ bool RelionJobWindow::prepareFinalCommand(std::string &outputname, std::vector<s
 		for (size_t icom = 0; icom < commands.size(); icom++)
 		{
 
-			std::string bashcommand = "bash -l -c \"" + commands[icom] + "\"";
+			std::string bashcommand = "bash -l -c \'" + commands[icom] + "\'";
 
 			// Is this a relion mpi program?
 			if ((has_mpi && nr_mpi.getValue() > 1)  &&
 				(commands[icom]).find("_mpi") != std::string::npos &&
 				(commands[icom]).find("relion_") != std::string::npos) {
-				one_command = "/usr/bin/time -p -o run.out -a mpirun -n " + floatToString(nr_mpi.getValue()) + " ";
+				one_command = "/usr/bin/time -f \"$TIME_FORMAT\" mpirun -n " + floatToString(nr_mpi.getValue()) + " ";
 				if (!mpi_hostfile.getValue().empty())
 					one_command += " --hostfile " + mpi_hostfile.getValue() + " ";
 				// add bash -l option
@@ -539,7 +543,7 @@ bool RelionJobWindow::prepareFinalCommand(std::string &outputname, std::vector<s
 		}
 	}
 
-	//std::cout << final_command << std::endl;
+//	std::cout << "Running ===>" << final_command << std::endl;
 
  	//char * my_warn = getenv ("RELION_WARNING_LOCAL_MPI");
 	//int my_nr_warn = (my_warn == NULL) ? DEFAULTWARNINGLOCALMPI : textToInteger(my_warn);
@@ -1356,7 +1360,7 @@ CtffindJobWindow::CtffindJobWindow() : RelionJobWindow(5, HAS_MPI, HAS_NOT_THREA
 
 
 	tab2->begin();
-	tab2->label("Microscopy");
+	tab2->label("Common");
 	resetHeight();
 
 	cs.place(current_y, "Spherical aberration (mm):", 2, 0, 8, 0.1, "Spherical aberration of the microscope used to collect these images (in mm)");
@@ -1467,6 +1471,8 @@ CtffindJobWindow::CtffindJobWindow() : RelionJobWindow(5, HAS_MPI, HAS_NOT_THREA
 \n If set to No, all parameters on the CTFFIND tab will be passed to Gctf.");
 
 	do_EPA.place(current_y, "Perform equi-phase averaging?", false, "If set to Yes, equi-phase averaging is used in the defocus refinement, otherwise basic rotational averaging will be performed.");
+    do_phase_flip.place(current_y, "Do phase flipping?", false,
+                        "If set to Yes, phase flipping will be performed. This will save a phase-flipped micrograph in the job directory.");
 
 	// Add a little spacer
 	current_y += STEPY/2;
@@ -1648,19 +1654,19 @@ bool CtffindJobWindow::getCommands(std::string &outputname, std::vector<std::str
 	RFLOAT magn = 10000.;
 
 	command += " --i " + input_star_mics.getValue();
-	command += " --o " + outputname;
-	command += " --CS " + floatToString(cs.getValue());
-	command += " --HT " + floatToString(kv.getValue());
-	command += " --AmpCnst " + floatToString(q0.getValue());
-	command += " --XMAG " + floatToString(magn);
-	command += " --DStep " + floatToString(angpix.getValue());
-	command += " --Box " + floatToString(box.getValue());
-	command += " --ResMin " + floatToString(resmin.getValue());
-	command += " --ResMax " + floatToString(resmax.getValue());
-	command += " --dFMin " + floatToString(dfmin.getValue());
-	command += " --dFMax " + floatToString(dfmax.getValue());
-	command += " --FStep " + floatToString(dfstep.getValue());
-	command += " --dAst " + floatToString(dast.getValue());
+    command += " --o " + outputname;
+    command += " --CS " + floatToString(cs.getValue());
+    command += " --HT " + floatToString(kv.getValue());
+    command += " --AmpCnst " + floatToString(q0.getValue());
+    command += " --XMAG " + floatToString(magn);
+    command += " --DStep " + floatToString(angpix.getValue());
+    command += " --Box " + floatToString(box.getValue());
+    command += " --ResMin " + floatToString(resmin.getValue());
+    command += " --ResMax " + floatToString(resmax.getValue());
+    command += " --dFMin " + floatToString(dfmin.getValue());
+    command += " --dFMax " + floatToString(dfmax.getValue());
+    command += " --FStep " + floatToString(dfstep.getValue());
+    command += " --dAst " + floatToString(dast.getValue());
 	if (use_gctf.getValue())
 	{
 		command += " --use_gctf --gctf_exe " + fn_gctf_exe.getValue();
@@ -1669,11 +1675,13 @@ bool CtffindJobWindow::getCommands(std::string &outputname, std::vector<std::str
 			command += " --ignore_ctffind_params";
 		if (do_EPA.getValue())
 			command += " --EPA";
+        if (do_phase_flip.getValue())
+            command += " --do_phase_flip";
 
 		// GPU-allocation
 		command += " --gpu \"" + gpu_ids.getValue() + "\"";
 
-		if ((other_gctf_args.getValue()).length() > 0)
+		if (other_gctf_args.getValue().length() > 0)
 			command += " --extra_gctf_options \" " + other_gctf_args.getValue() + " \"";
 
 	}
@@ -1708,10 +1716,7 @@ bool CtffindJobWindow::getCommands(std::string &outputname, std::vector<std::str
 	commands.push_back(command);
 
 	return prepareFinalCommand(outputname, commands, final_command, do_makedir);
-
 }
-
-
 
 ManualpickJobWindow::ManualpickJobWindow() : RelionJobWindow(3, HAS_NOT_MPI, HAS_NOT_THREAD)
 {
@@ -1760,8 +1765,8 @@ rlnParticleSelectZScore \n rlnClassNumber \n rlnAutopickFigureOfMerit \n rlnAngl
 	fn_color.place(current_y, "STAR file with color label: ", "", "STAR file (*.star)", NULL, "The program will figure out which particles in this STAR file are on the current micrograph and color their circles according to the value in the corresponding column. \
 Particles that are not in this STAR file, but present in the picked coordinates file will be colored green. If this field is left empty, then the color label (e.g. rlnAutopickFigureOfMerit) should be present in the coordinates STAR file.");
 
-	blue_value.place(current_y, "Blue value: ", 0., 0., 4., 0.1, "The value of this entry will be blue. There will be a linear scale from blue to red, according to this value and the one given below.");
-	red_value.place(current_y, "Red value: ", 2., 0., 4., 0.1, "The value of this entry will be red. There will be a linear scale from blue to red, according to this value and the one given above.");
+	blue_value.place(current_y, "Blue value: ", 0.f, 0.f, 4.f, 0.1, "The value of this entry will be blue. There will be a linear scale from blue to red, according to this value and the one given below.");
+	red_value.place(current_y, "Red value: ", 2.f, 0.f, 4.f, 0.1, "The value of this entry will be red. There will be a linear scale from blue to red, according to this value and the one given above.");
 	color_group->end();
 	do_color.cb_menu_i(); // make default active
 
@@ -1979,7 +1984,7 @@ AutopickJobWindow::AutopickJobWindow() : RelionJobWindow(4, HAS_MPI, HAS_NOT_THR
 	tab3->label("autopicking");
 	resetHeight();
 
-	threshold_autopick.place(current_y, "Picking threshold:", 0.05, 0, 1., 0.01, "Use lower thresholds to pick more particles (and more junk probably)");
+	threshold_autopick.place(current_y, "Picking threshold:", 0.05, 0, 1.f, 0.01, "Use lower thresholds to pick more particles (and more junk probably)");
 
 	mindist_autopick.place(current_y, "Minimum inter-particle distance (A):", 100, 0, 1000, 20, "Particles closer together than this distance will be consider to be a single cluster. From each cluster, only one particle will be picked. \
 \n\nThis option takes no effect for picking helical segments. The inter-box distance is calculated with the number of asymmetrical units and the helical rise on 'Helix' tab.");
@@ -3841,8 +3846,8 @@ void Class3DJobWindow::toggle_new_continue(bool _is_continue)
 }*/
 
 //!!
-static void appendModelResizeCommand(std::vector<std::string> &commands,std::string modelin,std::string &modelout,
-									 std::string star,bool do_apply_zero_thresh=False){
+static void appendModelResizeCommand(std::vector<std::string> &commands, std::string modelin, std::string &modelout,
+                                     std::string star, bool do_apply_zero_thresh = false) {
 	// create a temp reference filename
 	FileName fn_ref(modelin);
 	modelout = fn_ref.insertBeforeExtension("_resized");
@@ -4615,7 +4620,7 @@ bool Auto3DJobWindow::getCommands(std::string &outputname, std::vector<std::stri
 	if (fn_mask.getValue().length() > 0)
 	{
 		std::string mask_resized;
-		appendModelResizeCommand(commands,fn_mask.getValue(),mask_resized,fn_img.getValue(),True);
+        appendModelResizeCommand(commands, fn_mask.getValue(), mask_resized, fn_img.getValue(), true);
 		// use the resized mask for processing
 		command += " --solvent_mask " + mask_resized;
 

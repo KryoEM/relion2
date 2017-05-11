@@ -23,7 +23,7 @@
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
 #define INSTD_BG 	STR(INSTALL_LIBRARY_DIR) "gui_background.xpm"
-#define SRCD_BG 	STR(INSTALL_LIBRARY_DIR) "gui_background.xpm"
+#define SRCD_BG 	STR(SOURCE_DIR) "gui_background.xpm"
 
 // The StdOutDisplay allows looking at the entire stdout or stderr file
 int StdOutDisplay::handle(int ev)
@@ -274,9 +274,9 @@ RelionMainWindow::RelionMainWindow(int w, int h, const char* title, FileName fn_
 	}
 
     // Copy RELION hostfile to the project directory
-    FileName hf_name = ".default_hostfile";
+    FileName hf_name = "default_hostfile";
     if (!exists(hf_name)) {
-        // Get value of environment variable that points to the ansible-playbook-created hostfile
+        // Get value of environment variable that points to the ansible-created hostfile
         char *hf_env = getenv("RELION_DEFAULT_HOSTFILE");
 
         // If the environment variable exists, copy the default hostfile to the project directory
@@ -284,15 +284,15 @@ RelionMainWindow::RelionMainWindow(int w, int h, const char* title, FileName fn_
         // TODO: Discuss behavior if the environment variable doesn't exist (what should happen)
         if (hf_env != NULL) {
             if (exists(hf_env)) {
-                copy(hf_env, ".default_hostfile");
+                copy(hf_env, hf_name);
             }
         } else {
             std::cout
-                    << "Warning: Cannot find default hostfile. A blank hostfile has been created in the project directory for further editing."
+					<< "\nWarning: Cannot find default hostfile. A blank hostfile has been created in the project directory for further editing."
                             " RELION will use the system-wide hostfile, but this can be changed by editing the blank hostfile that was just created and specifying this hostfile in the 'Running' tab."
                             " For more information, see help dialog for 'MPI hostfile' in the 'Running' tab."
-                    << std::endl;
-            touch(".default_hostfile");
+					<< std::endl;
+            touch(hf_name);
         }
     }
 
@@ -876,6 +876,7 @@ void RelionMainWindow::loadJobFromPipeline()
 		is_main_continue = true;
 	else
 		is_main_continue = false;
+//    is_main_continue = pipeline.processList[current_job].status != PROC_SCHEDULED_NEW;
 
 	cb_toggle_continue_i();
 
@@ -3282,12 +3283,21 @@ void RelionMainWindow::cb_about(Fl_Widget* o, void* v)
 
 void RelionMainWindow::cb_about_i()
 {
-	ShowHelpText *help = new ShowHelpText("\
-RELION is written by Sjors Scheres at the MRC Laboratory of Molecular Biology (scheres@mrc-lmb.cam.ac.uk).\n \
+
+#define HELPTEXT ("RELION " RELION_VERSION "\n \n \
+RELION is is developed in the groups of\n\n \
+Sjors H.W. Scheres at the MRC Laboratory of Molecular Biology\n \n \
+- Sjors H.W. Scheres\n \
+- Shaoda He\n \
+\n \n \
+and Erik Lindahl at Stockholm University\n \n \
+- Erik Lindahl\n \
+- Björn O. Forsberg\n \
+- Dari Kimanius\n \
 \n\
 Note that RELION is completely free, open-source software. You can redistribute it and/or modify it for your own purposes, but please do make sure \
-the contribution of Sjors Scheres is acknowledged appropriately. In order to maintain an overview of existing versions, he would also appreciate being \
-notified of any redistribution of (modified versions of) the code. \n \n \n \
+the contribution of the developers are acknowledged appropriately. In order to maintain an overview of existing versions, a notification regarding  \
+any redistribution of (modified versions of) the code is appreciated (contact Sjors directly). \n \n \n \
 If RELION is useful in your work, please cite us. Relevant papers are:\n \n \
  * General Bayesian approach (and first mention of RELION): \n \
      Scheres (2012) J. Mol. Biol. (PMID: 22100448)	 \n \n\
@@ -3305,6 +3315,8 @@ If RELION is useful in your work, please cite us. Relevant papers are:\n \n \
      Scheres (2014) J. Struct. Biol. (PMID: 25486611) \n \n \
  * Sub-tomogram averaging : \n \
      Bharat et al. (2015) Structure (PMID: 26256537) \n \n \
+ * v.2.0 GPU capability and autopicking acceleration : \n \
+     Kimanius et al. (2016) eLife (PMID: 27845625) \n \n \
 Please also cite the following EXTERNAL programs: \n \n \
 * MOTIONCORR for beam-induced motion correction: \n \
     Li et al (2013) Nat. Methods (PMID: 23644547) \n \n\
@@ -3320,8 +3332,9 @@ Please also cite the following EXTERNAL programs: \n \n \
     Zhang (2016) J. Struct. Biol. (PMID: 2659270) \n \n\
 * ResMap for local-resolution estimation:  \n\
     Kucukelbir et al. (2014) Nat. Meth. (PMID: 24213166) \n \n\
-* Postscript plots are made using CPlot2D from  www.amzsaki.com\n \
-");
+* Postscript plots are made using CPlot2D from  www.amzsaki.com\n ")
+
+	ShowHelpText *help = new ShowHelpText(HELPTEXT);
 }
 
 
