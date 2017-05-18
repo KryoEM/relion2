@@ -313,13 +313,17 @@ void CtffindRunner::joinCtffindResults()
 	// Phase flipping is only enabled for GCTF, so we can assume GCTF is enabled
 	if (do_phase_flip) {
         std::cout << "Writing STAR file of phase-flipped micrographs...\n" << std::endl;
+
         // Write out the STAR file of the phase-flipped micrographs
         FileName pf_fn = (std::string) fn_out + "micrographs_pflipped.star";
 
         // Create the star file and open an output stream
+		std::cout << "Creating STAR file header ...\n" << std::endl;
         system(strcat((char*)"relion_star_loopheader rlnMicrographName > ", pf_fn.c_str())); // Why people use python not C++ ;)
+
         std::ofstream pf_starfile(pf_fn, std::ofstream::out);
 
+		std::cout << "Writing list of micrographs ...\n" << std::endl;
         // Write our phase-flipped micrograph names to the STAR file
         for (int mic = 0; mic < fn_micrographs_all.size(); mic++) {
             FileName pf_mic_name = fn_micrographs_all[mic].without(".mrc") + "_pf.mrc";
