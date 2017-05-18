@@ -318,8 +318,14 @@ void CtffindRunner::joinCtffindResults()
         FileName pf_fn = (std::string) fn_out + "micrographs_pflipped.star";
 
         // Create the star file and open an output stream
-		std::cout << "Creating STAR file header ...\n" << std::endl;
-        system(strcat((char*)"relion_star_loopheader rlnMicrographName > ", pf_fn.c_str())); // Why people use python not C++ ;)
+        std::string command = (std::string) "relion_star_loopheader rlnMicrographName > " + pf_fn.c_str();
+
+        std::cout << "Running command " << command << "\n" << std::endl;
+
+        system(command.c_str()); //strcat((char*)"relion_star_loopheader rlnMicrographName > ", pf_fn.c_str())); // Why people use python not C++ ;)
+
+
+        std::cout << "Open filestream " << pf_fn << "\n" << std::endl;
 
         std::ofstream pf_starfile(pf_fn, std::ofstream::out);
 
