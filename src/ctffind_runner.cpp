@@ -320,16 +320,15 @@ void CtffindRunner::joinCtffindResults()
         // Create the star file and open an output stream
         std::string command = (std::string) "relion_star_loopheader rlnMicrographName > " + pf_fn.c_str();
 
-        std::cout << "Running command " << command << "\n" << std::endl;
+        //std::cout << "Running command " << command << "\n" << std::endl;
 
         system(command.c_str()); //strcat((char*)"relion_star_loopheader rlnMicrographName > ", pf_fn.c_str())); // Why people use python not C++ ;)
 
+        //std::cout << "Open filestream " << pf_fn << "\n" << std::endl;
 
-        std::cout << "Open filestream " << pf_fn << "\n" << std::endl;
+        std::ofstream pf_starfile(pf_fn, std::ofstream::app);
 
-        std::ofstream pf_starfile(pf_fn, std::ofstream::out);
-
-		std::cout << "Writing list of micrographs ...\n" << std::endl;
+		//std::cout << "Writing list of micrographs ...\n" << std::endl;
         // Write our phase-flipped micrograph names to the STAR file
         for (int mic = 0; mic < fn_micrographs_all.size(); mic++) {
             FileName pf_mic_name = fn_micrographs_all[mic].without(".mrc") + "_pf.mrc";
