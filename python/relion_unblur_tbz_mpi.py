@@ -277,7 +277,7 @@ def main_mpi(dstdir,starfile,unblurexe,sumexe,nth,do_aligned_movies,dodose,dosum
              dose_per_frame,vol,pre_exp,first_frame,last_frame):
 
     if dosummovie:
-        assert(last_frame >= first_frame)
+        assert(last_frame >= first_frame or last_frame==0)
 
     # init scratch
     scratch.init('/scratch')
