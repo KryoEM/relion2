@@ -297,6 +297,7 @@ def main_mpi(dstdir,starfile,unblurexe,sumexe,nth,do_aligned_movies,dodose,dosum
     # clean scratch
     scratch.clean()
 
+
 def get_parser():
     parser = argparse.ArgumentParser(fromfile_prefix_chars='@',
                                      description='Running unblur on tbz-compressed micrographs via MPI.',

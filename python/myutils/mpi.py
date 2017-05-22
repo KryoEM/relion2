@@ -9,10 +9,11 @@ Here are implemented main functions for running generic MPI jobs
 """
 #%%
 from   mpi4py import MPI
-from   myutils.utils import tprint,enum  #part_idxs
+from   myutils.utils import tprint,enum,eprint  #part_idxs
 import time
 import os
 import socket
+
 
 TAGS   = enum('READY', 'DONE', 'CLOSED', 'EXIT', 'START','WAITING')
 #%%
@@ -86,10 +87,10 @@ def verify(out,err,status):
     if not status:
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
-        #print out
-        #print err
-        raise RuntimeError("%s\n## ERROR on hostname %s, pid %d, mpi rank %d ####\n" % (err,socket.gethostname(),os.getpid(),rank))
-        MPI.COMM_WORLD.Abort(1)
+        eprint("#### ERROR on hostname %s, pid %d, mpi rank %d ####\n" % (socket.gethostname(),os.getpid(),rank))
+        eprint("Error message: %s" % err)
+        eprint("Output message: %s" % out)
+        comm.Abort(1)
 
 ####### GARBAGE #############
     #pending  = comm.iprobe(source=0, tag=MPI.ANY_TAG,status=status)

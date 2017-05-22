@@ -21,6 +21,9 @@ from   cStringIO import StringIO
 
 now=time.time
 
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
 def enum(*sequential, **named):
     """Handy way to fake an enumerated type in Python
     http://stackoverflow.com/questions/36932/how-can-i-represent-an-enum-in-python
