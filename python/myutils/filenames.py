@@ -37,11 +37,13 @@ def replace_ext(path, new_ext):
    root, ext = os.path.splitext(path)
    return root + new_ext
    
-def mkdir_assure(path):
+def mkdir_assure(path,mode=None):
     if os.path.exists(path):
         return 
     try:
         os.makedirs(path)
+        if mode is not None:
+            os.chmod(path,mode)
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise  # raises the error again     

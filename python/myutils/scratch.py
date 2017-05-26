@@ -75,7 +75,7 @@ class Scratch(Base):
         self.proc_path  = get_mypid_dirname(self.base_path,self.prefix)
         # create scratch directory for my own procid
         # tprint('Process scratch path %s' % self.proc_path)
-        fn.mkdir_assure(self.proc_path)    
+        fn.mkdir_assure(self.proc_path,mode=0777)
         # clean orphaned scratch directories
         clean_orphaned_procdirs(self.base_path, self.prefix)
 
