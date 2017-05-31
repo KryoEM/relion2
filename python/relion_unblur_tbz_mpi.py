@@ -164,7 +164,7 @@ def write_summovie_script(dstmdir,mrcin,nth,sumexe,nframes,angpix,
     f.write('%s\n%d\n' % (mrcin,nframes))
     f.write('%s\n' % (mrcavg))
     f.write('%s\n' % mrcsft)
-    f.write('%s\n%d\n%d\n%f\n' % (mrcfrc,first_frame,last_frame,angpix))
+    f.write('%s\n%d\n%d\n%f\n' % (mrcfrc,first_frame,last_frame if last_frame > 0 else nframes,angpix))
     f.write('NO\n')    
     f.write('EOF\n')        
     f.close()
