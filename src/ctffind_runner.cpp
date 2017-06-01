@@ -271,6 +271,7 @@ void CtffindRunner::joinCtffindResults()
 {
 
 	MetaDataTable MDctf;
+    MetaDataTable MDctf_flip;
 	for (long int imic = 0; imic < fn_micrographs_all.size(); imic++)
     {
 		FileName fn_microot = fn_micrographs_all[imic].without(".mrc");
@@ -305,27 +306,30 @@ void CtffindRunner::joinCtffindResults()
 				MDctf.setValue(EMDL_CTF_PHASESHIFT, phaseshift);
 			if (fabs(valscore + 999.) > 0.)
 				MDctf.setValue(EMDL_CTF_VALIDATIONSCORE, valscore);
-		}
+            if (do_phase_flip){
+                //FileName fn_ctf_flip = fn_root + "_ph.ctf";
+                MDctf_flip.addObject();
+                MDctf_flip.setValue(EMDL_MICROGRAPH_NAME, fn_root + "_ph.ctf");
+            } // if phase_flip
+		} // else
     }
 	MDctf.write(fn_out+"micrographs_ctf.star");
 	std::cout << " Done! Written out: " << fn_out <<  "micrographs_ctf.star" << std::endl;
 
-	// Phase flipping is only enabled for GCTF, so we can assume GCTF is enabled
-	if (do_phase_flip) {
-        std::cout << "Writing STAR file of phase-flipped micrographs...\n" << std::endl;
+    if (do_phase_flip) {
+        FileName pf_fn = (std::string) fn_out + "micrographs_pflipped.star";
+        MDctf_flip.write(pf_fn);
+        std::cout << "Done writing phase-flipped micrograph STAR file! It is located at " << pf_fn << std::endl;
+    }
 
+        // Phase flipping is only enabled for GCTF, so we can assume GCTF is enabled
+	/*if (do_phase_flip) {
+        std::cout << "Writing STAR file of phase-flipped micrographs...\n" << std::endl;
         // Write out the STAR file of the phase-flipped micrographs
         FileName pf_fn = (std::string) fn_out + "micrographs_pflipped.star";
-
         // Create the star file and open an output stream
         std::string command = (std::string) "relion_star_loopheader rlnMicrographName > " + pf_fn.c_str();
-
-        //std::cout << "Running command " << command << "\n" << std::endl;
-
         system(command.c_str()); //strcat((char*)"relion_star_loopheader rlnMicrographName > ", pf_fn.c_str())); // Why people use python not C++ ;)
-
-        //std::cout << "Open filestream " << pf_fn << "\n" << std::endl;
-
         std::ofstream pf_starfile(pf_fn, std::ofstream::app);
 
 		//std::cout << "Writing list of micrographs ...\n" << std::endl;
@@ -338,7 +342,7 @@ void CtffindRunner::joinCtffindResults()
         // Finally, close the output stream
         pf_starfile.close();
         std::cout << "Done writing phase-flipped micrograph STAR file! It is located at " << pf_fn << std::endl;
-	}
+	}*/
 
 	if (do_use_gctf)
 	{

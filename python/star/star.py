@@ -117,7 +117,8 @@ def starFromPath(path):
 class Star:
 
 	# A Star object is initialized by being given a parameter lookup table, and a body generator
-	# Therefore, there does not need to be an existing .star file on the filesystem in order to create a Star object (useful when you want to create a copy of a Star object with modified traits).
+	# Therefore, there does not need to be an existing .star file on the filesystem in order to create a Star object
+	# (useful when you want to create a copy of a Star object with modified traits).
 	def __init__(self, header_lookup, body_generator):
 		#lookup table for k: parameter name, v: column number 
 		self.lookup = header_lookup
@@ -176,6 +177,8 @@ class Star:
 	def getMic(self, line):
 		return self.valueOf("MicrographName", line)
 
+	def scanValues(self,params):
+		return [self.valuesOf(params,line) for line in self.body]
 
 	# Returns the header of this Star object as a printtable string
 	def textHeader(self):
