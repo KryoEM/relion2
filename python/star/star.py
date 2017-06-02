@@ -171,14 +171,20 @@ class Star:
 	# Find the values associated with the given parameters (provided as a list of strings) in a given line
 	# Returns None if the value could not be found.
 	def valuesOf(self, params, line):
-		return map (lambda param: self.valueOf(param, line), params) 
+		return map (lambda param: self.valueOf(param, line), params)
+
+	def pairsOf(self,line):
+		pairs = {}
+		for key in self.lookup:
+			pairs.update({key:self.valueOf(key,line)})
+		return pairs
 
 	# Returns the micrograph name of a given line
 	def getMic(self, line):
 		return self.valueOf("MicrographName", line)
 
-	def scanValues(self,params):
-		return [self.valuesOf(params,line) for line in self.body]
+	def readLines(self):
+		return [self.pairsOf(line) for line in self.body]
 
 	# Returns the header of this Star object as a printtable string
 	def textHeader(self):
