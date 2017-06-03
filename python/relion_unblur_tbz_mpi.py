@@ -335,7 +335,7 @@ def get_parser():
 ###### Main starts here #######################################    
 if __name__ == "__main__":
 
-    if False:
+    if True:
         # Parse input and obtain all params
         args,unknown        = get_parser().parse_known_args()
         kwargs              = vars(args)
