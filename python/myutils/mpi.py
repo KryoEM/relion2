@@ -13,9 +13,18 @@ from   myutils.utils import tprint,enum,eprint  #part_idxs
 import time
 import os
 import socket
-
+import sys
 
 TAGS   = enum('READY', 'DONE', 'CLOSED', 'EXIT', 'START','WAITING')
+
+# put this somewhere but before calling the asserts
+sys_excepthook = sys.excepthook
+def mpi_excepthook(type, value, traceback): 
+    sys_excepthook(type, value, traceback) 
+    if MPI.COMM_WORLD.size > 1:
+        MPI.COMM_WORLD.Abort(1) 
+
+sys.excepthook = mpi_excepthook 
 #%%
 
 def __worker_iter(run_fun,comm,status): 

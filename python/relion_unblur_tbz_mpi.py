@@ -197,8 +197,13 @@ def unblurmicro(unblurexe,sumexe,nth,ftbz,dstmdir,do_aligned_movies,
     unblur_csh = write_unblur_script(dstmdir,mrcname,nth,
                                      unblurexe,nframes,angpix,do_aligned_movies,
                                      dodose,dose_per_frame,vol,pre_exp)    
+
     # call unblur script
-    mpi.verify(*sysrun('csh %s' % unblur_csh))
+    out,err,status = sysrun('csh %s' % unblur_csh)
+    if not status:
+    	# try calling unblur twice due to unblur temporary file problem that occurs sometimes
+    	# 2017-11-10 06:13:22: Fatal error (FileCopyRaw): Source file does not exist: .UnBlur_xjZrVGy32eeXOKPf
+	mpi.verify(*sysrun('csh %s' % unblur_csh))
     if dosummovie:
         # generate summovoe script
         tprint("Running Summovie on %s" % mrcname)                        
