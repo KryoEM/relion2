@@ -20,6 +20,7 @@ from   functools import partial
 import argparse  
 import glob
 import os
+from   shutil import copyfile
 
 MOVSUFF         = '.mrc'
 AVGSUFF         = '_avg.mrc'
@@ -45,7 +46,7 @@ def gain2mrc(basedir):
     gaindm4  = glob.glob(path)
     if len(gaindm4) == 0:
             raise IOError('Gain dm4 file not found in %s !!!' % basedir)
-    gaindm4  = gaindm4[0]
+    gaindm4  = os.path.abspath(gaindm4[0])
     gainmrc  = join(sdir,'gain.mrc')
     dstdm4   = join(sdir,'gain.dm4')
     # link dm4 with a simpler filename    
@@ -80,8 +81,13 @@ def tbz2mrc(srcdir,tbzname,dstext,**kwargs):
     fn.mkdir_assure(untbzdir)        
     untbz(tbzname,untbzdir,**kwargs)
 
-    root,srcext = splitext(glob.glob(join(untbzdir, '*.dm4'))[0])
+    #root,srcext = splitext(glob.glob(join(untbzdir, '*.dm4'))[0])
+    untbzfiles  = glob.glob(join(untbzdir,mname+'*'))
+    root,srcext = splitext(untbzfiles[0])
 
+    #print ' Source extension %s ' % srcext
+    #exit()
+    
     gainmrc = gain2mrc(srcdir)    
     srcmics = join(untbzdir,mname) + '*'+srcext
     mrctmp  = sname + '_tmp.mrc'
@@ -90,10 +96,16 @@ def tbz2mrc(srcdir,tbzname,dstext,**kwargs):
         dm4tomrc(srcmics,mrctmp)
     else:
         assert(srcext == '.mrc')
-        stackmrcs(srcmics,mrctmp)
-
+	#if len(untbzfiles) > 1:
+	stackmrcs(srcmics,mrctmp)
+	#else:
+        #  copyfile(untbzfiles[0],mrctmp)
+        # transpose gain mrc data
+        #transpose_mrc(gainmrc,gainmrc)
+        
     # multiply all frames by gains
-    multgains(mrctmp,gainmrc,dstmrc)
+    # print mrctmp, gainmrc, dstmrc
+    multgains(mrctmp,gainmrc,dstmrc)        
     out,err,status = sysrun('rm -rf %s' % untbzdir)
     assert(status)        
     out,err,status = sysrun('rm ' + mrctmp)
@@ -143,7 +155,7 @@ def write_unblur_script(dstmdir,mrcin,nth,unblurexe,nframes,angpix,do_movies,
     f.write('NO\n')    
     f.write('EOF\n')        
     f.close()
-    return cshfile,mrcavg
+    return cshfile
     
 def write_summovie_script(dstmdir,mrcin,nth,sumexe,nframes,angpix,
                          first_frame,last_frame):
@@ -160,11 +172,11 @@ def write_summovie_script(dstmdir,mrcin,nth,sumexe,nframes,angpix,
     f.write('%s\n%d\n' % (mrcin,nframes))
     f.write('%s\n' % (mrcavg))
     f.write('%s\n' % mrcsft)
-    f.write('%s\n%d\n%d\n%f\n' % (mrcfrc,first_frame,last_frame if last_frame > 0 else nframes,angpix))
+    f.write('%s\n%d\n%d\n%f\n' % (mrcfrc,first_frame,last_frame,angpix))
     f.write('NO\n')    
     f.write('EOF\n')        
     f.close()
-    return cshfile,mrcavg
+    return cshfile
     
 def unblurmicro(unblurexe,sumexe,nth,ftbz,dstmdir,do_aligned_movies,
                 dodose,dose_per_frame,vol,pre_exp,
@@ -182,7 +194,7 @@ def unblurmicro(unblurexe,sumexe,nth,ftbz,dstmdir,do_aligned_movies,
     angpix  = mrc.psize(mrcname)    
     # generate unblur csh script
     tprint("Running Unblur on %s" % mrcname)                
-    unblur_csh,mrcout = write_unblur_script(dstmdir,mrcname,nth,
+    unblur_csh = write_unblur_script(dstmdir,mrcname,nth,
                                      unblurexe,nframes,angpix,do_aligned_movies,
                                      dodose,dose_per_frame,vol,pre_exp)    
     # call unblur script
@@ -190,15 +202,10 @@ def unblurmicro(unblurexe,sumexe,nth,ftbz,dstmdir,do_aligned_movies,
     if dosummovie:
         # generate summovoe script
         tprint("Running Summovie on %s" % mrcname)                        
-        sum_csh,mrcout = write_summovie_script(dstmdir,mrcname,nth,sumexe,nframes,angpix,
+        sum_csh = write_summovie_script(dstmdir,mrcname,nth,sumexe,nframes,angpix,
                                         first_frame,last_frame)
         # call summovie script
-        mpi.verify(*sysrun('csh %s' % sum_csh))
-
-    # correct pixel size in the resulting mrc file
-    psize = mrc.psize(mrcname)
-    im    = mrc.load(mrcout)
-    mrc.save(im,mrcout,pixel_size=psize)
+        mpi.verify(*sysrun('csh %s' % sum_csh))  
     
 def get_all_tasks(dstmdir,starfile):
     '''Run by master rank 0 to initialize the processing'''
@@ -283,6 +290,12 @@ def main_mpi(dstdir,starfile,unblurexe,sumexe,nth,do_aligned_movies,dodose,dosum
     # init scratch
     scratch.init('/scratch')
 
+    # tbzgroup = get_all_tasks(dstdir,starfile)
+    # if len(tbzgroup) > 0:
+    #     mpi_run(dstdir,unblurexe,sumexe,nth,do_aligned_movies,dodose,dosummovie,
+    #             dose_per_frame,vol,pre_exp,first_frame,last_frame,tbzgroup[0])
+    # mpi_finish(dstdir, starfile, do_aligned_movies, [])
+
     mpi.scatter_list(partial(get_all_tasks,dstdir,starfile),
                      partial(mpi_run,dstdir,unblurexe,sumexe,nth,do_aligned_movies,dodose,dosummovie,
                              dose_per_frame,vol,pre_exp,first_frame,last_frame),
@@ -335,69 +348,70 @@ def get_parser():
 ###### Main starts here #######################################    
 if __name__ == "__main__":
 
-    if True:
-        # Parse input and obtain all params
-        args,unknown        = get_parser().parse_known_args()
-        kwargs              = vars(args)
-        if len(unknown) > 0:
-            print "Unkown arguments %s !!! \n Quitting ..." % unknown
-            quit()
-        dstdir              = kwargs['output_dir']
-        starfile            = kwargs['input_star_file']
-        unblurexe           = kwargs['unblur_exe']
-        sumexe              = kwargs['summovie_exe']
-        nth                 = kwargs['nthreads']
-        do_aligned_movies   = kwargs['save_aligned_movies']
-        dodose              = kwargs['do_dose']
-        dose_per_frame      = kwargs['dose_per_frame']
-        vol                 = kwargs['voltage']
-        pre_exp             = kwargs['pre_exp']
-        first_frame         = kwargs['first_frame_sum']
-        last_frame          = kwargs['last_frame_sum']
-        dosummovie          = last_frame != 0 or first_frame !=0
-        # call main function with all params
+    # Parse input and obtain all params
+    args,unknown        = get_parser().parse_known_args()
+    kwargs              = vars(args)
+    if len(unknown) > 0:
+        print "Unkown arguments %s !!! \n Quitting ..." % unknown
+        quit()
+    dstdir              = kwargs['output_dir']
+    starfile            = kwargs['input_star_file']
+    unblurexe           = kwargs['unblur_exe']
+    sumexe              = kwargs['summovie_exe']
+    nth                 = kwargs['nthreads']
+    do_aligned_movies   = kwargs['save_aligned_movies']
+    dodose              = kwargs['do_dose']
+    dose_per_frame      = kwargs['dose_per_frame']
+    vol                 = kwargs['voltage']
+    pre_exp             = kwargs['pre_exp']
+    first_frame         = kwargs['first_frame_sum']
+    last_frame          = kwargs['last_frame_sum']
+    dosummovie          = last_frame != 0 or first_frame !=0
+    # call main function with all params
 
-        main_mpi(dstdir, starfile, unblurexe, sumexe, nth, do_aligned_movies, dodose, dosummovie,
-                 dose_per_frame, vol, pre_exp, first_frame, last_frame)
+    main_mpi(dstdir, starfile, unblurexe, sumexe, nth, do_aligned_movies, dodose, dosummovie,
+             dose_per_frame, vol, pre_exp, first_frame, last_frame)
 
-    else: # DEBUG
-        #%% ----------------- TESTS -----------------------
-        starfile  = '/jasper/result/PKM2_WT/Import/job001/tbz_movies.star'
-        # starfile  = '/jasper/result/PKM2_WT/Import/job172/tbz_movies.star'
-        dstdir    = '/jasper/result/PKM2_WT/UnblurTBZ/job177/'
 
-        unblurexe = '/jasper/relion/Unblur/unblur_1.0.2/bin/unblur_openmp_7_17_15.exe'
-        sumexe    = '/jasper/relion/Summovie/summovie_1.0.2/bin/sum_movie_openmp_7_17_15.exe'
+#     #tprint("Align status %d" % do_aligned_movies)
+# # else:
+#     #%% ----------------- TESTS -----------------------
+#     starfile  = '/jasper/result/PKM2_WT/Import/job001/tbz_movies.star'
+#     starfile  = '/jasper/result/PKM2_WT/Import/job172/tbz_movies.star'
+#     dstdir    = '/jasper/result/PKM2_WT/UnblurTBZ/job177/'
+#
+#     unblurexe = '/jasper/relion/Unblur/unblur_1.0.2/bin/unblur_openmp_7_17_15.exe'
+#     sumexe    = '/jasper/relion/Summovie/summovie_1.0.2/bin/sum_movie_openmp_7_17_15.exe'
+#
+#     nth       = 4
+#     dodose    = False
+#     dose_per_frame = 1.0
+#     vol       = 300
+#     pre_exp   = 1.0
+#     do_aligned_movies = True
+#     dosummovie = True
+#     first_frame = 0
+#     last_frame = 38
+#     #%%
+#
+#     scratch.init('/scratch')
+#
+#     tbzgroup = get_all_tasks(dstdir,starfile)
+#
+#     partial(mpi_run, dstdir, unblurexe, sumexe, nth, do_aligned_movies, dodose, dosummovie,
+#             dose_per_frame, vol, pre_exp, first_frame, last_frame)(tbzgroup[0])
 
-        nth       = 4
-        dodose    = False
-        dose_per_frame = 1.0
-        vol       = 300
-        pre_exp   = 1.0
-        do_aligned_movies = False
-        dosummovie = True
-        first_frame = 0
-        last_frame = 38
 
-        scratch.init('/scratch')
+#
+#     main_mpi(dstdir, starfile, unblurexe, sumexe, nth, do_aligned_movies, dodose, dosummovie,
+#              dose_per_frame, vol, pre_exp, first_frame, last_frame)
 
-        tbzgroup = get_all_tasks(dstdir,starfile)
-
-        if len(tbzgroup) > 0:
-            mpi_run(dstdir, unblurexe, sumexe, nth, do_aligned_movies, dodose, dosummovie,
-                    dose_per_frame, vol, pre_exp, first_frame, last_frame, tbzgroup[0])
-        mpi_finish(dstdir, starfile, do_aligned_movies, [])
-
-        mpi.scatter_list(partial(get_all_tasks, dstdir, starfile),
-                         partial(mpi_run, dstdir, unblurexe, sumexe, nth, do_aligned_movies, dodose, dosummovie,
-                                 dose_per_frame, vol, pre_exp, first_frame, last_frame),
-                         partial(mpi_finish, dstdir, starfile, do_aligned_movies))
-
-        # clean scratch
-        scratch.clean()
-
-        # main_mpi(dstdir, starfile, unblurexe, sumexe, nth, do_aligned_movies, dodose, dosummovie,
-        #          dose_per_frame, vol, pre_exp, first_frame, last_frame)
+#     partial(mpi_finish, dstdir, starfile, do_aligned_movies)(tbzgroup)
+    # pass
+#     #tbzgroup = [tbzgroup[0],tbzgroup[1]]
+#     #tbzgroup = [tbzgroup[0]]
+#
+#     #partial(get_all_tasks, dstdir, starfile)(tbzgroup)
 
     #gain2mrc('/jasper/data/Livlab/projects_nih/BGal/BetaGal_PETG_20141217_2/')
     # --------------------------------------------------
@@ -405,3 +419,14 @@ if __name__ == "__main__":
 
     
 #mpirun -n 8  -hostfile ./motionhost `which unblurtbz.py` -i Import/job001/movies.star -o MotionCorr/job001/ -j 4 -s=True -f 3 -l 20 -un /jasper/relion/Unblur/unblur_1.0.2/bin/unblur_openmp_7_17_15.exe -sm /jasper/relion/Summovie/summovie_1.0.2/bin/sum_movie_openmp_7_17_15.exe
+
+    # #scratch.init('/scratch')
+    # ftbz = '/jasper/data/Livlab/autoprocess_cmm/empty_micrographs/Nucleosome_20170424_1821/20170424_1821_A001_G002_H000_D001.tbz'
+    # dstmdir = '/jasper/result/PKM2_WT/UnblurTBZ/job177/Movies/'
+    # #extract_tbz(ftbz, 16)
+    # mrcname = tbz2mrc_name(ftbz)
+    # mname = fn.file_only(mrcname)
+    # mrcaln = join(dstmdir, mname + ALNSUFF)
+    # mrcsaln = join(dstmdir, mname + ALNSUFF + 's')
+    # mpi.verify(*sysrun('ln -s %s %s' % (mrcaln, mrcsaln)))
+    #

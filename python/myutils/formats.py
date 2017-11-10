@@ -42,8 +42,9 @@ def dm4tomrc(fsrc,fdst):
 def stackmrcs(fsrc,fdst):
     cmd     = "newstack %s %s " % (fsrc, fdst)  
     out,err,status = sysrun(cmd) 
-    #print out+err
-    assert(status)
+    if not status:
+        print out+err
+        assert(status)
     
 def transpose_mrc(srcmrc,dstmrc):
     g,psize = mrc.load_psize(srcmrc)
