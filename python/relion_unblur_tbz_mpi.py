@@ -21,6 +21,7 @@ import argparse
 import glob
 import os
 from   shutil import copyfile
+import mrcfile
 
 MOVSUFF         = '.mrc'
 AVGSUFF         = '_avg.mrc'
@@ -33,6 +34,13 @@ GAINS_KEY       = 'Gain Ref'
 MOVIE_KEY       = '_rlnTbzMovieName'
 
 ####### FUNCTIONS ####################################
+
+def mrcshape(mrcname):
+    #with mrcfile.open(mrcname) as mrc:
+    #	shape = mrc.data.shape
+    #return shape
+    return mrc.shape(mrcname)
+
 def tbz2mrc_name(ftbz):
     mname   = fn.file_only(ftbz)    
     sdir    = scratch.join(SCRATCH_DIR)    
@@ -61,13 +69,15 @@ def gain2mrc(basedir):
     
 def multgains(srcmrc,gainmrc,dstmrc):
     cmd = 'clip mult -n 16 %s %s %s' % (srcmrc,gainmrc,dstmrc)
-    srcshape  = mrc.shape(srcmrc)
-    gainshape = mrc.shape(gainmrc)
+    srcshape  = mrcshape(srcmrc)  #mrc.shape(srcmrc)
+    gainshape = mrcshape(gainmrc) #mrc.shape(gainmrc)
     # ugly, but has to be there, as input data formats keep changing
     if srcshape[1] != gainshape[1]:
         transpose_mrc(gainmrc, gainmrc)
     out,err,status = sysrun(cmd)
-    assert(status)        
+    if not status:
+        print out+err
+        assert(status)
     
 def tbz2mrc(srcdir,tbzname,dstext,**kwargs):
     ''' Unzips and converts to mrc. Cleans the tbz and the dm4 files '''
@@ -185,7 +195,7 @@ def unblurmicro(unblurexe,sumexe,nth,ftbz,dstmdir,do_aligned_movies,
     # Unblur directory in scratch
     mrcname = tbz2mrc_name(ftbz) 
     # obtain number of frames in the movie
-    nframes = mrc.shape(mrcname)[0]
+    nframes = mrcshape(mrcname)[0] #mrc.shape(mrcname)[0]
 
     # correct frame limits if needed
     first_frame = max(1,first_frame)
@@ -209,8 +219,10 @@ def unblurmicro(unblurexe,sumexe,nth,ftbz,dstmdir,do_aligned_movies,
         tprint("Running Summovie on %s" % mrcname)                        
         sum_csh = write_summovie_script(dstmdir,mrcname,nth,sumexe,nframes,angpix,
                                         first_frame,last_frame)
-        # call summovie script
-        mpi.verify(*sysrun('csh %s' % sum_csh))  
+	out,err,status = sysrun('csh %s' % sum_csh)    
+	if not status:    
+	  # call summovie script
+          mpi.verify(*sysrun('csh %s' % sum_csh))  
     
 def get_all_tasks(dstmdir,starfile):
     '''Run by master rank 0 to initialize the processing'''
